@@ -9,12 +9,15 @@
   --bg:#f6f4ef; --card:#ffffff; --ink:#1f2328; --sub:#6b6f76; --line:#e3dfd6;
   --accent:#2f6fde; --accent-soft:#e6eefc; --cover:#d9dde4; --cover-ink:#7a808a;
   --ok:#1f8a4c; --ok-soft:#e3f4ea; --ng:#c2410c; --ng-soft:#fdebe1;
+  /* 設定の行ごとの色 */
+  --g-hide:#2f6fde; --g-cat:#0e7f86; --g-only:#a8660b; --g-view:#7647c9; --on-ink:#ffffff;
 }
 @media (prefers-color-scheme: dark){
   :root{
     --bg:#16181c; --card:#1f2228; --ink:#eceef1; --sub:#9aa0a9; --line:#30343c;
     --accent:#6ea0ff; --accent-soft:#22304a; --cover:#3a3f48; --cover-ink:#a3a9b3;
     --ok:#4cc27d; --ok-soft:#1c3327; --ng:#f08a5d; --ng-soft:#3a251c;
+    --g-hide:#6ea0ff; --g-cat:#3cc6bd; --g-only:#e5aa45; --g-view:#ad8cf2; --on-ink:#14161a;
   }
 }
 *{box-sizing:border-box}
@@ -28,11 +31,27 @@ main{max-width:960px;margin:0 auto;padding:0 16px 48px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
 .label{font-size:.85rem;color:var(--sub);min-width:4.5em}
-button,.chip{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);
+button,.chip,select{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);
   border-radius:999px;padding:7px 14px;cursor:pointer}
 button:hover{border-color:var(--accent)}
 .chip.on,button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 .count{font-size:.85rem;color:var(--sub);margin-left:auto}
+.row[data-group=hide]{--c:var(--g-hide)}
+.row[data-group=cat]{--c:var(--g-cat)}
+.row[data-group=only]{--c:var(--g-only)}
+.row[data-group=view]{--c:var(--g-view)}
+.row[data-group] > .label{color:var(--c);font-weight:700}
+.row[data-group] .chip:hover{border-color:var(--c)}
+.row[data-group] .chip.on{background:var(--c);border-color:var(--c);color:var(--on-ink)}
+/* 確認テストの準備は「表示」と同じ紫にそろえる */
+#testsetup{border-color:var(--g-view)}
+#testsetup .label{color:var(--g-view);font-weight:700}
+#testsetup .chip:hover,#testsetup button:hover{border-color:var(--g-view)}
+#testsetup .chip.on,#testsetup .primary{background:var(--g-view);border-color:var(--g-view);color:var(--on-ink)}
+#testsetup input[type=checkbox]{accent-color:var(--g-view)}
+.badge{display:inline-block;font-size:.75rem;font-weight:700;color:#fff;background:var(--ng);
+  border-radius:6px;padding:2px 7px;white-space:nowrap}
 
 /* 一覧 */
 .list{display:grid;gap:8px}
@@ -53,7 +72,7 @@ button:hover{border-color:var(--accent)}
 .item.isok{background:var(--ok-soft)}
 .item.isng{background:var(--ng-soft)}
 
-/* カード */
+/* カード・テスト */
 .cardwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
 .bigcard{width:100%;max-width:720px;min-height:320px;background:var(--card);border:1px solid var(--line);
   border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -66,22 +85,31 @@ button:hover{border-color:var(--accent)}
 .a .yomi{font-size:1rem}
 .cardbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .cardbtns button{padding:10px 18px;font-size:1rem}
+.judge{padding:12px 34px !important;font-size:1.3rem !important;font-weight:700;color:#fff}
+.judge.ok{background:var(--ok);border-color:var(--ok)}
+.judge.ng{background:var(--ng);border-color:var(--ng)}
 .hint{font-size:.8rem;color:var(--sub)}
 .empty{text-align:center;color:var(--sub);padding:30px}
+.score{font-size:clamp(2.4rem,8vw,4rem);font-weight:700}
+.wronglist{text-align:left;margin:0;padding-left:1.2em}
 
-/* 結果の共有 */
-input[type=text],textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);
-  border-radius:10px;padding:7px 10px}
-textarea{width:100%;min-height:8em;resize:vertical}
+/* 記録 */
+.rec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.rechead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.recdate{font-weight:700}
+.recmeta{color:var(--sub);font-size:.85rem}
+.recscore{margin-left:auto;font-weight:700;font-size:1.1rem}
+.bar{height:6px;background:var(--line);border-radius:99px;margin:8px 0;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--ok)}
+.recwrong{font-size:.9rem}
+.recwrong b{margin-right:4px}
+.recbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.recbtns button{padding:5px 12px;font-size:.85rem}
+.del{color:var(--ng)}
+.stats{display:flex;flex-wrap:wrap;gap:18px}
+.stats div{font-size:.85rem;color:var(--sub)}
+.stats b{display:block;font-size:1.4rem;color:var(--ink)}
 .msg{font-size:.85rem;color:var(--ok)}
-#copybox{margin-top:8px}
-details.panel summary{cursor:pointer;font-weight:700}
-.report h3{font-size:1rem;margin:14px 0 6px}
-.report table{border-collapse:collapse;width:100%;font-size:.9rem}
-.report th,.report td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
-.report td.num{text-align:right}
-.report ul{margin:0;padding-left:1.2em}
-.report .err{color:var(--ng)}
 
 @media (max-width:560px){
   .item{grid-template-columns:1fr 1fr}
@@ -97,36 +125,32 @@ details.panel summary{cursor:pointer;font-weight:700}
 </header>
 <main>
   <section class="panel">
-    <div class="row"><span class="label">かくす</span>
+    <div class="row" data-group="hide"><span class="label">かくす</span>
       <button class="chip" data-hide="en">英語をかくす</button>
       <button class="chip" data-hide="ja">日本語をかくす</button>
     </div>
-    <div class="row"><span class="label">はんい</span><span id="cats" class="row" style="margin:0"></span></div>
-    <div class="row"><span class="label">しぼる</span>
+    <div class="row" data-group="cat"><span class="label">はんい</span><span id="cats" class="row" style="margin:0"></span></div>
+    <div class="row" data-group="only"><span class="label">しぼる</span>
       <button class="chip" data-only="all">ぜんぶ</button>
       <button class="chip" data-only="ng">「まだ」だけ</button>
       <button class="chip" data-only="notok">「覚えた」以外</button>
+      <button class="chip" data-only="pick" id="onlypick"></button>
     </div>
-    <div class="row"><span class="label">表示</span>
+    <div class="row" data-group="view"><span class="label">表示</span>
       <button class="chip" data-view="list">一覧</button>
       <button class="chip" data-view="card">1問ずつ</button>
+      <button class="chip" data-view="test">確認テスト</button>
+      <button class="chip" data-view="records">テスト記録</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="row" id="ordertools"><span class="label">順番</span>
       <button id="shuffle">シャッフル</button>
       <button id="order">元の順番</button>
-      <span class="count" id="count"></span>
     </div>
     <div class="row" id="listtools"><span class="label">一覧</span>
       <button id="showall">答えを全部見せる</button>
       <button id="hideall">全部かくす</button>
       <button id="resetmarks">印をリセット</button>
-    </div>
-    <div class="row"><span class="label">結果</span>
-      <input type="text" id="sname" placeholder="名前（呼び名でOK）" maxlength="20">
-      <button id="copyresult">結果をコピー</button>
-      <span class="msg" id="copymsg"></span>
-    </div>
-    <div id="copybox" hidden>
-      <div class="hint">うまくコピーできないときは、下の文を全部選んでコピーし、先生に送ってください。</div>
-      <textarea id="copytext" readonly></textarea>
     </div>
   </section>
 
@@ -148,13 +172,69 @@ details.panel summary{cursor:pointer;font-weight:700}
     <div class="hint">キーボード：スペース＝答え ／ ←→＝前・次 ／ 1＝まだ ／ 2＝覚えた</div>
   </section>
 
-  <details class="panel" style="margin-top:24px">
-    <summary>先生用：生徒の結果を読み込む</summary>
-    <p class="hint">生徒から送られてきた文を、そのまま全部貼り付けてください。</p>
-    <textarea id="pastetext" placeholder="ここに貼り付け"></textarea>
-    <div class="row"><button id="loadresult">読み込む</button></div>
-    <div id="report" class="report"></div>
-  </details>
+  <section id="testview" hidden>
+    <div id="testsetup" class="panel">
+      <p style="margin-top:0">上の「かくす」「はんい」「しぼる」で選んだ単語から出題します。</p>
+      <div class="row"><span class="label">出題のしかた</span>
+        <button class="chip" data-tmode="seq">続きから（順番どおり）</button>
+        <button class="chip" data-tmode="rand">ランダム</button>
+      </div>
+      <div class="row" id="seqtools"><span class="label"></span>
+        <label><input type="checkbox" id="testmix"> この回の中では順番をまぜる</label>
+        <button id="seqreset">最初からにする</button>
+      </div>
+      <div class="row"><span class="label">問題数</span>
+        <select id="testnum">
+          <option value="5">5問</option><option value="10" selected>10問</option>
+          <option value="15">15問</option><option value="20">20問</option>
+          <option value="30">30問</option><option value="all">全部</option>
+        </select>
+        <button class="primary" id="teststart">テスト開始</button>
+      </div>
+      <div class="hint" id="testinfo"></div>
+    </div>
+    <div id="testrun" class="cardwrap" hidden>
+      <div class="bigcard">
+        <div class="progress" id="tprog"></div>
+        <div class="q" id="tq"></div>
+        <div class="a cover" id="ta"></div>
+      </div>
+      <div class="cardbtns">
+        <button id="treveal">答えを見る</button>
+        <button id="tng" class="judge ng">×</button>
+        <button id="tok" class="judge ok">○</button>
+      </div>
+      <div class="cardbtns"><button id="tback">1問もどる</button><button id="tquit">テストをやめる</button></div>
+      <div class="hint">キーボード：スペース＝答え ／ 1またはX＝× ／ 2またはO＝○ ／ Backspace＝1問もどる</div>
+    </div>
+    <div id="testdone" class="cardwrap" hidden>
+      <div class="bigcard">
+        <div class="progress" id="dmeta"></div>
+        <div class="score" id="dscore"></div>
+        <div id="dwrong" style="width:100%;max-width:520px"></div>
+      </div>
+      <div class="cardbtns">
+        <button class="primary" id="tsave">記録する</button>
+        <button id="treview">記録して復習する</button>
+        <button id="tdiscard">記録しないで終わる</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="recview" hidden>
+    <div class="panel">
+      <div class="stats" id="stats"></div>
+      <div class="row" style="margin-top:12px">
+        <button id="practiceallwrong">これまでの×を全部練習</button>
+        <button id="exportrec">記録をファイルに書き出す</button>
+        <button id="importrec">ファイルから読み込む</button>
+        <input type="file" id="importfile" accept=".json,application/json" hidden>
+        <span class="msg" id="recmsg"></span>
+      </div>
+      <div class="hint">記録はこのパソコンのこのブラウザにだけ保存されます。ブラウザのデータを消すと記録も消えるので、ときどき書き出しておいてください。</div>
+    </div>
+    <div id="reclist"></div>
+  </section>
 </main>
 
 <script>
@@ -211,39 +291,65 @@ const WORDS = [];
 for (const [cat, list] of Object.entries(RAW)) {
   for (const [en, ja, yomi] of list) WORDS.push({ id: cat + ":" + en, cat, en, ja, yomi: yomi || "" });
 }
+const BY_ID = Object.fromEntries(WORDS.map(w => [w.id, w]));
+const IDX = Object.fromEntries(WORDS.map((w, i) => [w.id, i]));
+for (const w of WORDS) w.no = RAW[w.cat].findIndex(r => r[0] === w.en) + 1;   // 範囲の中で何番目か
 const CATS = Object.keys(RAW);
 
 function load(key, fallback){ try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; } }
 function save(key, val){ try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
 
 const state = Object.assign(
-  { hide: "en", cats: CATS.slice(), only: "all", view: "list", shuffled: false },
+  { hide: "en", cats: CATS.slice(), only: "all", view: "list", shuffled: false,
+    pickIds: [], pickWrong: [], pickLabel: "",       // 復習用にしぼり込んだ単語
+    testMode: "seq", testMix: true, testPos: 0 },    // testPos: 「続きから」で次に出す単語の位置
   load("eitango-settings", {})
 );
-let marks = load("eitango-marks", {});   // id -> "ok" | "ng"
+let marks = load("eitango-marks", {});     // id -> "ok" | "ng"
+let records = load("eitango-records", []); // 確認テストの記録
 let order = WORDS.map((_, i) => i);
 let revealed = new Set();
 let cardIndex = 0, cardShown = false;
+let test = null;                           // 実施中のテスト
 
 function current(){
+  const pick = new Set(state.pickIds);
   return order.map(i => WORDS[i]).filter(w =>
     state.cats.includes(w.cat) &&
-    (state.only === "all" || (state.only === "ng" ? marks[w.id] === "ng" : marks[w.id] !== "ok")));
+    (state.only === "all" ||
+     (state.only === "ng" && marks[w.id] === "ng") ||
+     (state.only === "notok" && marks[w.id] !== "ok") ||
+     (state.only === "pick" && pick.has(w.id))));
 }
-function esc(s){ return s.replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
-function jaHtml(w){ return esc(w.ja) + (w.yomi ? `<span class="yomi">読み方：${esc(w.yomi)}</span>` : ""); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function jaHtml(w){ return esc(w.ja); }
+// 読み方は答えのヒントになるので、英語の側に付ける
+function enHtml(w){ return esc(w.en) + (w.yomi ? `<span class="yomi">読み方：${esc(w.yomi)}</span>` : ""); }
+function catLabel(cats){ return cats.length === CATS.length ? "すべて" : cats.join("・"); }
+function dirLabel(hide){ return hide === "en" ? "日本語→英語" : "英語→日本語"; }
+function fmtDate(iso){
+  const d = new Date(iso), p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 
 function renderControls(){
   document.querySelectorAll("[data-hide]").forEach(b => b.classList.toggle("on", b.dataset.hide === state.hide));
   document.querySelectorAll("[data-only]").forEach(b => b.classList.toggle("on", b.dataset.only === state.only));
   document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === state.view));
   document.querySelectorAll("[data-cat]").forEach(b => b.classList.toggle("on", state.cats.includes(b.dataset.cat)));
-  document.getElementById("listtools").hidden = state.view !== "list";
-  document.getElementById("listview").hidden = state.view !== "list";
-  document.getElementById("cardview").hidden = state.view !== "card";
+  const pickBtn = document.getElementById("onlypick");
+  pickBtn.hidden = !state.pickIds.length;
+  pickBtn.textContent = state.pickLabel || "テストの単語";
+  const v = state.view;
+  document.getElementById("listtools").hidden = v !== "list";
+  document.getElementById("ordertools").hidden = !(v === "list" || v === "card");
+  document.getElementById("listview").hidden = v !== "list";
+  document.getElementById("cardview").hidden = v !== "card";
+  document.getElementById("testview").hidden = v !== "test";
+  document.getElementById("recview").hidden = v !== "records";
   const ws = current();
   const ok = ws.filter(w => marks[w.id] === "ok").length;
-  document.getElementById("count").textContent = `${ws.length}語（覚えた ${ok}）`;
+  document.getElementById("count").textContent = v === "records" ? `記録 ${records.length}回` : `${ws.length}語（覚えた ${ok}）`;
   save("eitango-settings", state);
 }
 
@@ -255,15 +361,21 @@ function renderList(){
     const open = revealed.has(w.id);
     const enHidden = state.hide === "en" && !open, jaHidden = state.hide === "ja" && !open;
     const m = marks[w.id];
-    const enCell = `<div class="cell en ${enHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${esc(w.en)}</span></div>`;
+    const enCell = `<div class="cell en ${enHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${enHtml(w)}</span></div>`;
     const jaCell = `<div class="cell ja ${jaHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${jaHtml(w)}</span></div>`;
     return `<div class="item ${m === "ok" ? "isok" : m === "ng" ? "isng" : ""}">
       ${state.hide === "ja" ? enCell + jaCell : jaCell + enCell}
       <div class="marks">
+        ${isPickWrong(w) ? `<span class="badge">テストで×</span>` : ""}
         <button class="mk ng ${m === "ng" ? "on" : ""}" data-mark="ng" data-id="${esc(w.id)}">まだ</button>
         <button class="mk ok ${m === "ok" ? "on" : ""}" data-mark="ok" data-id="${esc(w.id)}">覚えた</button>
       </div></div>`;
   }).join("");
+}
+
+function showQA(w, hide, qEl, aEl){
+  if (hide === "en"){ qEl.innerHTML = jaHtml(w); qEl.className = "q jaq"; aEl.innerHTML = enHtml(w); }
+  else { qEl.textContent = w.en; qEl.className = "q"; aEl.innerHTML = esc(w.ja) + (w.yomi ? `<span class="yomi">読み方：${esc(w.yomi)}</span>` : ""); }
 }
 
 function renderCard(){
@@ -276,16 +388,182 @@ function renderCard(){
   if (cardIndex >= ws.length) cardIndex = ws.length - 1;
   if (cardIndex < 0) cardIndex = 0;
   const w = ws[cardIndex];
-  document.getElementById("prog").textContent = `${cardIndex + 1} / ${ws.length}　・　${w.cat}`;
-  if (state.hide === "en"){ q.innerHTML = jaHtml(w); q.className = "q jaq"; a.textContent = w.en; }
-  else { q.textContent = w.en; q.className = "q"; a.innerHTML = jaHtml(w); }
+  document.getElementById("prog").innerHTML = `${cardIndex + 1} / ${ws.length}　・　${esc(w.cat)}` +
+    (isPickWrong(w) ? `　<span class="badge">テストで×</span>` : "");
+  showQA(w, state.hide, q, a);
   a.className = "a" + (cardShown ? "" : " cover");
   document.getElementById("reveal").textContent = cardShown ? "かくす" : "答えを見る";
   document.getElementById("markng").classList.toggle("on", marks[w.id] === "ng");
   document.getElementById("markok").classList.toggle("on", marks[w.id] === "ok");
 }
 
-function render(){ renderControls(); state.view === "list" ? renderList() : renderCard(); }
+// ===== 確認テスト =====
+function renderTest(){
+  const setup = document.getElementById("testsetup"), run = document.getElementById("testrun"), done = document.getElementById("testdone");
+  setup.hidden = !!test; run.hidden = !test || test.finished; done.hidden = !test || !test.finished;
+  if (!test){
+    const pool = seqPool(), n = pool.length;
+    document.querySelectorAll("[data-tmode]").forEach(b => b.classList.toggle("on", b.dataset.tmode === state.testMode));
+    document.getElementById("seqtools").hidden = state.testMode !== "seq";
+    document.getElementById("testmix").checked = state.testMix;
+    let next = "";
+    if (state.testMode === "seq" && n){
+      const w = pool[seqStart(pool)];
+      next = ` ／ 次は「${w.en}」（${w.cat}の${w.no}番目）から`;
+    }
+    document.getElementById("testinfo").textContent =
+      `出し方：${dirLabel(state.hide)} ／ はんい：${catLabel(state.cats)} ／ 出題できる単語：${n}語${next}`;
+    document.getElementById("teststart").disabled = !n;
+    return;
+  }
+  if (!test.finished){
+    const w = BY_ID[test.items[test.i]];
+    document.getElementById("tprog").textContent = `${test.i + 1} / ${test.items.length}問　・　○ ${test.results.filter(r => r).length}`;
+    const ta = document.getElementById("ta");
+    showQA(w, test.hide, document.getElementById("tq"), ta);
+    ta.className = "a" + (test.shown ? "" : " cover");
+    document.getElementById("treveal").textContent = test.shown ? "かくす" : "答えを見る";
+    document.getElementById("tback").disabled = test.i === 0;
+    return;
+  }
+  const correct = test.results.filter(r => r).length, total = test.items.length;
+  const wrong = test.items.filter((_, i) => !test.results[i]).map(id => BY_ID[id]);
+  document.getElementById("dmeta").textContent = `${dirLabel(test.hide)} ／ ${catLabel(test.cats)}` + (test.range ? ` ／ ${test.range}` : "");
+  document.getElementById("dscore").textContent = `${correct} / ${total}（${Math.round(correct / total * 100)}%）`;
+  document.getElementById("dwrong").innerHTML = wrong.length
+    ? `<div class="progress">×だった単語</div><ul class="wronglist">${wrong.map(w => `<li><b>${esc(w.en)}</b>　${esc(w.ja)}</li>`).join("")}</ul>`
+    : `<div>全問正解！</div>`;
+  document.getElementById("tsave").disabled = test.saved;
+  document.getElementById("tsave").textContent = test.saved ? "記録しました" : "記録する";
+  document.getElementById("treview").textContent = test.saved ? "この回の単語を復習" : "記録して復習する";
+  document.getElementById("tdiscard").textContent = test.saved ? "終わる" : "記録しないで終わる";
+}
+
+function shuffled(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+// 「続きから」用：選んでいる単語を一覧の順番に並べたもの
+function seqPool(){ return current().sort((a, b) => IDX[a.id] - IDX[b.id]); }
+function seqStart(pool){ const k = pool.findIndex(w => IDX[w.id] >= state.testPos); return k < 0 ? 0 : k; }
+
+function startTest(){
+  const v = document.getElementById("testnum").value;
+  let items, nextPos = null, range = "";
+  if (state.testMode === "seq"){
+    const pool = seqPool();
+    const n = v === "all" ? pool.length : Math.min(Number(v), pool.length);
+    const s = seqStart(pool);
+    // 最後まで行ったら最初に戻って続ける
+    const picked = Array.from({ length: n }, (_, k) => pool[(s + k) % pool.length]);
+    if (!picked.length) return;
+    const last = picked[picked.length - 1];
+    nextPos = IDX[last.id] + 1;
+    range = `${picked[0].en} ～ ${last.en}`;
+    items = (state.testMix ? shuffled(picked) : picked).map(w => w.id);
+  } else {
+    const pool = shuffled(current());
+    items = (v === "all" ? pool : pool.slice(0, Number(v))).map(w => w.id);
+    if (!items.length) return;
+  }
+  test = { items, i: 0, shown: false, results: [], hide: state.hide, cats: state.cats.slice(),
+           mode: state.testMode, nextPos, range, finished: false, saved: false };
+}
+function judge(ok){
+  if (!test || test.finished) return;
+  test.results[test.i] = ok;
+  test.shown = false;
+  if (test.i + 1 >= test.items.length) test.finished = true; else test.i++;
+}
+function saveTest(){
+  const correct = test.results.filter(r => r).length;
+  records.unshift({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: new Date().toISOString(), hide: test.hide, cats: test.cats,
+    total: test.items.length, correct, mode: test.mode, range: test.range, items: test.items,
+    wrong: test.items.filter((_, i) => !test.results[i])
+  });
+  save("eitango-records", records);
+  // 記録したときだけ「続きから」の位置を進める
+  if (test.mode === "seq") state.testPos = test.nextPos >= WORDS.length ? 0 : test.nextPos;
+  test.saved = true;
+}
+
+// ===== テスト記録 =====
+function renderRecords(){
+  const box = document.getElementById("reclist");
+  const n = records.length;
+  const avg = n ? Math.round(records.reduce((s, r) => s + r.correct / r.total, 0) / n * 100) : 0;
+  const last = n ? Math.round(records[0].correct / records[0].total * 100) : 0;
+  const allWrong = new Set(records.flatMap(r => r.wrong));
+  document.getElementById("stats").innerHTML = `
+    <div><b>${n}回</b>テストした回数</div>
+    <div><b>${n ? avg + "%" : "-"}</b>平均の正答率</div>
+    <div><b>${n ? last + "%" : "-"}</b>前回の正答率</div>
+    <div><b>${allWrong.size}語</b>これまでに×だった単語</div>`;
+  document.getElementById("practiceallwrong").disabled = !allWrong.size;
+  if (!n){ box.innerHTML = `<div class="empty">まだ記録がありません。「確認テスト」から始めましょう。</div>`; return; }
+  box.innerHTML = records.map(r => {
+    const pct = Math.round(r.correct / r.total * 100);
+    const wrong = r.wrong.map(id => BY_ID[id]).filter(Boolean);
+    return `<div class="rec">
+      <div class="rechead">
+        <span class="recdate">${esc(fmtDate(r.date))}</span>
+        <span class="recmeta">${esc(dirLabel(r.hide))} ／ ${esc(catLabel(r.cats))}${r.range ? " ／ " + esc(r.range) : ""}</span>
+        <span class="recscore">${r.correct} / ${r.total}（${pct}%）</span>
+      </div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+      <div class="recwrong">${wrong.length
+        ? "×：" + wrong.map(w => `<span title="${esc(w.ja)}"><b>${esc(w.en)}</b>${esc(w.ja)}</span>`).join("　")
+        : "全問正解"}</div>
+      <div class="recbtns">
+        ${r.items ? `<button data-recreview="${esc(r.id)}">この回の単語を復習</button>` : ""}
+        ${wrong.length ? `<button data-recpractice="${esc(r.id)}">この回の×を練習</button>` : ""}
+        <button class="del" data-recdel="${esc(r.id)}">この記録を消す</button>
+      </div></div>`;
+  }).join("");
+}
+
+// 指定した単語だけにしぼって練習する（wrong の単語には「テストで×」の印が付く）
+function review(ids, wrong, label){
+  state.pickIds = [...new Set(ids)];
+  state.pickWrong = [...new Set(wrong)];
+  state.pickLabel = label;
+  state.only = "pick"; state.cats = CATS.slice(); state.view = "list";
+  revealed.clear(); resetCard();
+}
+function isPickWrong(w){ return state.only === "pick" && state.pickWrong.includes(w.id); }
+
+function exportRecords(){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  const blob = new Blob([JSON.stringify({ app: "eitango", version: 1, records, marks }, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `eitango-kiroku-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  document.getElementById("recmsg").textContent = "書き出しました（ダウンロードフォルダを見てください）";
+}
+function importRecords(file){
+  const msg = document.getElementById("recmsg");
+  file.text().then(txt => {
+    const data = JSON.parse(txt);
+    if (data.app !== "eitango" || !Array.isArray(data.records)) throw new Error();
+    const have = new Set(records.map(r => r.id));
+    const add = data.records.filter(r => r && r.id && !have.has(r.id) && r.total);
+    records = records.concat(add).sort((x, y) => y.date.localeCompare(x.date));
+    save("eitango-records", records);
+    if (data.marks && !Object.keys(marks).length){ marks = data.marks; save("eitango-marks", marks); }
+    msg.textContent = `${add.length}件の記録を読み込みました`;
+    render();
+  }).catch(() => { msg.textContent = "読み込めませんでした。書き出したファイルを選んでください"; });
+}
+
+function render(){
+  renderControls();
+  ({ list: renderList, card: renderCard, test: renderTest, records: renderRecords })[state.view]();
+}
 
 function setMark(id, val){
   if (marks[id] === val) delete marks[id]; else marks[id] = val;
@@ -305,9 +583,14 @@ document.getElementById("cats").innerHTML =
 document.addEventListener("click", e => {
   const t = e.target.closest("button,[data-rev],.a");
   if (!t) return;
+  if (test && !test.finished && t.closest(".panel") && t.closest("main > .panel")){
+    // テスト中に上の設定を変えると出題が崩れるので、先にやめるか確認する
+    if (!confirm("テストの途中です。やめて設定を変えますか？")) return;
+    test = null;
+  }
   if (t.dataset.hide){ state.hide = t.dataset.hide; revealed.clear(); cardShown = false; }
   else if (t.dataset.only){ state.only = t.dataset.only; resetCard(); }
-  else if (t.dataset.view){ state.view = t.dataset.view; cardShown = false; }
+  else if (t.dataset.view){ state.view = t.dataset.view; cardShown = false; if (test && test.finished) test = null; }
   else if (t.hasAttribute("data-allcats")){ state.cats = state.cats.length === CATS.length ? [] : CATS.slice(); resetCard(); }
   else if (t.dataset.cat){
     const c = t.dataset.cat;
@@ -326,8 +609,6 @@ document.addEventListener("click", e => {
   else if (t.id === "reveal" || t.id === "a"){ cardShown = !cardShown; }
   else if (t.id === "next"){ cardIndex++; cardShown = false; if (cardIndex >= current().length) cardIndex = 0; }
   else if (t.id === "prev"){ cardIndex--; cardShown = false; if (cardIndex < 0) cardIndex = Math.max(current().length - 1, 0); }
-  else if (t.id === "copyresult"){ copyResult(); return; }
-  else if (t.id === "loadresult"){ loadResult(); return; }
   else if (t.id === "markng" || t.id === "markok"){
     const w = current()[cardIndex];
     if (w){
@@ -337,68 +618,59 @@ document.addEventListener("click", e => {
       if (current().length < before) cardShown = false;
     }
   }
+  else if (t.id === "teststart"){ startTest(); }
+  else if (t.id === "treveal" || t.id === "ta"){ test.shown = !test.shown; }
+  else if (t.id === "tok" || t.id === "tng"){ judge(t.id === "tok"); }
+  else if (t.id === "tback"){ if (test.i > 0){ test.i--; test.shown = false; } }
+  else if (t.id === "tquit"){ if (!confirm("テストをやめますか？（記録されません）")) return; test = null; }
+  else if (t.id === "tsave"){ saveTest(); }
+  else if (t.id === "treview"){
+    if (!test.saved) saveTest();
+    review(test.items, test.items.filter((_, i) => !test.results[i]), "この回の単語");
+    test = null;
+  }
+  else if (t.dataset.tmode){ state.testMode = t.dataset.tmode; }
+  else if (t.id === "seqreset"){ state.testPos = 0; }
+  else if (t.id === "tdiscard"){ test = null; }
+  else if (t.dataset.recdel){
+    if (!confirm("この記録を消しますか？元に戻せません。")) return;
+    records = records.filter(r => r.id !== t.dataset.recdel); save("eitango-records", records);
+  }
+  else if (t.dataset.recreview){
+    const r = records.find(x => x.id === t.dataset.recreview);
+    if (r) review(r.items, r.wrong, `${fmtDate(r.date).split(" ")[0]}の単語`);
+  }
+  else if (t.dataset.recpractice){
+    const r = records.find(x => x.id === t.dataset.recpractice);
+    if (r) review(r.wrong, r.wrong, `${fmtDate(r.date).split(" ")[0]}の×`);
+  }
+  else if (t.id === "practiceallwrong"){ const all = records.flatMap(r => r.wrong); review(all, all, "これまでの×"); }
+  else if (t.id === "exportrec"){ exportRecords(); return; }
+  else if (t.id === "importrec"){ document.getElementById("importfile").click(); return; }
   else return;
   render();
 });
 
-document.addEventListener("keydown", e => {
-  if (state.view !== "card") return;
-  const map = { " ":"reveal", ArrowRight:"next", ArrowLeft:"prev", "1":"markng", "2":"markok" };
-  if (map[e.key]){ e.preventDefault(); document.getElementById(map[e.key]).click(); }
+document.getElementById("testmix").addEventListener("change", e => { state.testMix = e.target.checked; save("eitango-settings", state); });
+
+document.getElementById("importfile").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (f) importRecords(f);
+  e.target.value = "";
 });
 
-// ===== 結果の共有（データは外に送らず、文章をコピーして手で送るだけ） =====
-const CODE_MARK = "#結果コード:";
-const nameInput = document.getElementById("sname");
-nameInput.value = load("eitango-name", "");
-nameInput.addEventListener("input", () => save("eitango-name", nameInput.value));
-
-function toCode(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
-function fromCode(s){ return JSON.parse(decodeURIComponent(escape(atob(s)))); }
-function today(){ const d = new Date(); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; }
-
-function copyResult(){
-  const ok = WORDS.filter(w => marks[w.id] === "ok"), ng = WORDS.filter(w => marks[w.id] === "ng");
-  const name = nameInput.value.trim() || "（名前なし）";
-  const date = today();
-  const text = [
-    "【英単語れんしゅう 結果】",
-    `名前：${name}`,
-    `日付：${date}`,
-    `覚えた：${ok.length} / ${WORDS.length}語`,
-    `まだ：${ng.length}語${ng.length ? "（" + ng.map(w => w.en).join(", ") + "）" : ""}`,
-    `${CODE_MARK}${toCode({ n: name, d: date, ok: ok.map(w => w.id), ng: ng.map(w => w.id) })}`
-  ].join("\n");
-  const box = document.getElementById("copybox"), ta = document.getElementById("copytext"), msg = document.getElementById("copymsg");
-  ta.value = text;
-  const done = () => { msg.textContent = "コピーしました。LINEなどで先生に送ってね"; box.hidden = true; };
-  const fail = () => { msg.textContent = ""; box.hidden = false; ta.focus(); ta.select(); };
-  try { navigator.clipboard.writeText(text).then(done, fail); } catch(e){ fail(); }
-}
-
-function loadResult(){
-  const out = document.getElementById("report");
-  const src = document.getElementById("pastetext").value;
-  const i = src.indexOf(CODE_MARK);
-  let data;
-  try { data = fromCode(src.slice(i + CODE_MARK.length).trim().split(/\s/)[0]); } catch(e){ data = null; }
-  if (i < 0 || !data){ out.innerHTML = `<p class="err">結果コードが見つかりませんでした。生徒から送られた文を全部貼り付けてください。</p>`; return; }
-  const okSet = new Set(data.ok || []), ngSet = new Set(data.ng || []);
-  const rows = CATS.map(c => {
-    const ws = WORDS.filter(w => w.cat === c);
-    const ok = ws.filter(w => okSet.has(w.id)).length, ng = ws.filter(w => ngSet.has(w.id)).length;
-    return `<tr><td>${c}</td><td class="num">${ok}</td><td class="num">${ng}</td><td class="num">${ws.length - ok - ng}</td><td class="num">${ws.length}</td></tr>`;
-  }).join("");
-  const ngWords = WORDS.filter(w => ngSet.has(w.id));
-  out.innerHTML = `
-    <h3>${esc(String(data.n || ""))}　${esc(String(data.d || ""))}</h3>
-    <p>覚えた <b>${okSet.size}</b> ／ まだ <b>${ngSet.size}</b> ／ 全${WORDS.length}語</p>
-    <table><tr><th>はんい</th><th>覚えた</th><th>まだ</th><th>未チェック</th><th>全部</th></tr>${rows}</table>
-    <h3>「まだ」の単語</h3>
-    ${ngWords.length ? `<ul>${ngWords.map(w => `<li><b>${esc(w.en)}</b>　${esc(w.ja)}</li>`).join("")}</ul>` : "<p>なし</p>"}`;
-}
+document.addEventListener("keydown", e => {
+  if (e.target instanceof Element && e.target.matches("input,select,textarea")) return;
+  let map = null;
+  if (state.view === "card") map = { " ":"reveal", ArrowRight:"next", ArrowLeft:"prev", "1":"markng", "2":"markok" };
+  if (state.view === "test" && test && !test.finished)
+    map = { " ":"treveal", "1":"tng", x:"tng", X:"tng", "2":"tok", o:"tok", O:"tok", Backspace:"tback" };
+  if (map && map[e.key]){ e.preventDefault(); document.getElementById(map[e.key]).click(); }
+});
 
 if (state.shuffled) shuffle();
+if (state.only === "wrong") state.only = "all";   // 前の版の設定が残っていた場合
+delete state.wrongIds;
 render();
 </script>
 </body>
