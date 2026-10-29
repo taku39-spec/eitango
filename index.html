@@ -69,6 +69,20 @@ button:hover{border-color:var(--accent)}
 .hint{font-size:.8rem;color:var(--sub)}
 .empty{text-align:center;color:var(--sub);padding:30px}
 
+/* 結果の共有 */
+input[type=text],textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;padding:7px 10px}
+textarea{width:100%;min-height:8em;resize:vertical}
+.msg{font-size:.85rem;color:var(--ok)}
+#copybox{margin-top:8px}
+details.panel summary{cursor:pointer;font-weight:700}
+.report h3{font-size:1rem;margin:14px 0 6px}
+.report table{border-collapse:collapse;width:100%;font-size:.9rem}
+.report th,.report td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+.report td.num{text-align:right}
+.report ul{margin:0;padding-left:1.2em}
+.report .err{color:var(--ng)}
+
 @media (max-width:560px){
   .item{grid-template-columns:1fr 1fr}
   .marks{grid-column:1 / -1;justify-content:flex-end}
@@ -105,6 +119,15 @@ button:hover{border-color:var(--accent)}
       <button id="hideall">全部かくす</button>
       <button id="resetmarks">印をリセット</button>
     </div>
+    <div class="row"><span class="label">結果</span>
+      <input type="text" id="sname" placeholder="名前（呼び名でOK）" maxlength="20">
+      <button id="copyresult">結果をコピー</button>
+      <span class="msg" id="copymsg"></span>
+    </div>
+    <div id="copybox" hidden>
+      <div class="hint">うまくコピーできないときは、下の文を全部選んでコピーし、先生に送ってください。</div>
+      <textarea id="copytext" readonly></textarea>
+    </div>
   </section>
 
   <section id="listview" class="list"></section>
@@ -124,6 +147,14 @@ button:hover{border-color:var(--accent)}
     </div>
     <div class="hint">キーボード：スペース＝答え ／ ←→＝前・次 ／ 1＝まだ ／ 2＝覚えた</div>
   </section>
+
+  <details class="panel" style="margin-top:24px">
+    <summary>先生用：生徒の結果を読み込む</summary>
+    <p class="hint">生徒から送られてきた文を、そのまま全部貼り付けてください。</p>
+    <textarea id="pastetext" placeholder="ここに貼り付け"></textarea>
+    <div class="row"><button id="loadresult">読み込む</button></div>
+    <div id="report" class="report"></div>
+  </details>
 </main>
 
 <script>
@@ -295,6 +326,8 @@ document.addEventListener("click", e => {
   else if (t.id === "reveal" || t.id === "a"){ cardShown = !cardShown; }
   else if (t.id === "next"){ cardIndex++; cardShown = false; if (cardIndex >= current().length) cardIndex = 0; }
   else if (t.id === "prev"){ cardIndex--; cardShown = false; if (cardIndex < 0) cardIndex = Math.max(current().length - 1, 0); }
+  else if (t.id === "copyresult"){ copyResult(); return; }
+  else if (t.id === "loadresult"){ loadResult(); return; }
   else if (t.id === "markng" || t.id === "markok"){
     const w = current()[cardIndex];
     if (w){
@@ -313,6 +346,57 @@ document.addEventListener("keydown", e => {
   const map = { " ":"reveal", ArrowRight:"next", ArrowLeft:"prev", "1":"markng", "2":"markok" };
   if (map[e.key]){ e.preventDefault(); document.getElementById(map[e.key]).click(); }
 });
+
+// ===== 結果の共有（データは外に送らず、文章をコピーして手で送るだけ） =====
+const CODE_MARK = "#結果コード:";
+const nameInput = document.getElementById("sname");
+nameInput.value = load("eitango-name", "");
+nameInput.addEventListener("input", () => save("eitango-name", nameInput.value));
+
+function toCode(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); }
+function fromCode(s){ return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+function today(){ const d = new Date(); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; }
+
+function copyResult(){
+  const ok = WORDS.filter(w => marks[w.id] === "ok"), ng = WORDS.filter(w => marks[w.id] === "ng");
+  const name = nameInput.value.trim() || "（名前なし）";
+  const date = today();
+  const text = [
+    "【英単語れんしゅう 結果】",
+    `名前：${name}`,
+    `日付：${date}`,
+    `覚えた：${ok.length} / ${WORDS.length}語`,
+    `まだ：${ng.length}語${ng.length ? "（" + ng.map(w => w.en).join(", ") + "）" : ""}`,
+    `${CODE_MARK}${toCode({ n: name, d: date, ok: ok.map(w => w.id), ng: ng.map(w => w.id) })}`
+  ].join("\n");
+  const box = document.getElementById("copybox"), ta = document.getElementById("copytext"), msg = document.getElementById("copymsg");
+  ta.value = text;
+  const done = () => { msg.textContent = "コピーしました。LINEなどで先生に送ってね"; box.hidden = true; };
+  const fail = () => { msg.textContent = ""; box.hidden = false; ta.focus(); ta.select(); };
+  try { navigator.clipboard.writeText(text).then(done, fail); } catch(e){ fail(); }
+}
+
+function loadResult(){
+  const out = document.getElementById("report");
+  const src = document.getElementById("pastetext").value;
+  const i = src.indexOf(CODE_MARK);
+  let data;
+  try { data = fromCode(src.slice(i + CODE_MARK.length).trim().split(/\s/)[0]); } catch(e){ data = null; }
+  if (i < 0 || !data){ out.innerHTML = `<p class="err">結果コードが見つかりませんでした。生徒から送られた文を全部貼り付けてください。</p>`; return; }
+  const okSet = new Set(data.ok || []), ngSet = new Set(data.ng || []);
+  const rows = CATS.map(c => {
+    const ws = WORDS.filter(w => w.cat === c);
+    const ok = ws.filter(w => okSet.has(w.id)).length, ng = ws.filter(w => ngSet.has(w.id)).length;
+    return `<tr><td>${c}</td><td class="num">${ok}</td><td class="num">${ng}</td><td class="num">${ws.length - ok - ng}</td><td class="num">${ws.length}</td></tr>`;
+  }).join("");
+  const ngWords = WORDS.filter(w => ngSet.has(w.id));
+  out.innerHTML = `
+    <h3>${esc(String(data.n || ""))}　${esc(String(data.d || ""))}</h3>
+    <p>覚えた <b>${okSet.size}</b> ／ まだ <b>${ngSet.size}</b> ／ 全${WORDS.length}語</p>
+    <table><tr><th>はんい</th><th>覚えた</th><th>まだ</th><th>未チェック</th><th>全部</th></tr>${rows}</table>
+    <h3>「まだ」の単語</h3>
+    ${ngWords.length ? `<ul>${ngWords.map(w => `<li><b>${esc(w.en)}</b>　${esc(w.ja)}</li>`).join("")}</ul>` : "<p>なし</p>"}`;
+}
 
 if (state.shuffled) shuffle();
 render();
