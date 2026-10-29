@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中学英単語れんしゅう</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1f2328; --sub:#6b6f76; --line:#e3dfd6;
+  --accent:#2f6fde; --accent-soft:#e6eefc; --cover:#d9dde4; --cover-ink:#7a808a;
+  --ok:#1f8a4c; --ok-soft:#e3f4ea; --ng:#c2410c; --ng-soft:#fdebe1;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16181c; --card:#1f2228; --ink:#eceef1; --sub:#9aa0a9; --line:#30343c;
+    --accent:#6ea0ff; --accent-soft:#22304a; --cover:#3a3f48; --cover-ink:#a3a9b3;
+    --ok:#4cc27d; --ok-soft:#1c3327; --ng:#f08a5d; --ng-soft:#3a251c;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;line-height:1.5}
+header{padding:16px;max-width:960px;margin:0 auto}
+h1{font-size:1.4rem;margin:0 0 4px}
+.lead{color:var(--sub);font-size:.9rem;margin:0}
+main{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.label{font-size:.85rem;color:var(--sub);min-width:4.5em}
+button,.chip{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+.chip.on,button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.count{font-size:.85rem;color:var(--sub);margin-left:auto}
+
+/* 一覧 */
+.list{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:1fr 1.6fr auto;gap:10px;align-items:center;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.en{font-size:1.25rem;font-weight:700;letter-spacing:.01em}
+.ja{font-size:1rem}
+.yomi{display:block;font-size:.8rem;color:var(--sub);font-weight:400}
+.cell{border-radius:8px;padding:4px 8px;min-height:2.2em;display:flex;flex-direction:column;justify-content:center}
+.hidden{background:var(--cover);color:transparent;cursor:pointer;user-select:none;position:relative}
+.hidden *{visibility:hidden}
+.hidden::after{content:"タップで答え";position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:var(--cover-ink);font-size:.8rem}
+.marks{display:flex;gap:4px}
+.mk{padding:5px 10px;font-size:.8rem}
+.mk.ok.on{background:var(--ok);border-color:var(--ok)}
+.mk.ng.on{background:var(--ng);border-color:var(--ng)}
+.item.isok{background:var(--ok-soft)}
+.item.isng{background:var(--ng-soft)}
+
+/* カード */
+.cardwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.bigcard{width:100%;max-width:720px;min-height:320px;background:var(--card);border:1px solid var(--line);
+  border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:28px 20px;text-align:center;gap:18px}
+.progress{color:var(--sub);font-size:.9rem}
+.q{font-size:clamp(2rem,7vw,3.6rem);font-weight:700;word-break:break-word}
+.q.jaq{font-size:clamp(1.4rem,5vw,2.4rem)}
+.a{font-size:clamp(1.3rem,4.5vw,2.2rem);min-height:1.6em;color:var(--accent);word-break:break-word}
+.a.cover{background:var(--cover);color:transparent;border-radius:10px;min-width:60%;cursor:pointer}
+.a .yomi{font-size:1rem}
+.cardbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.cardbtns button{padding:10px 18px;font-size:1rem}
+.hint{font-size:.8rem;color:var(--sub)}
+.empty{text-align:center;color:var(--sub);padding:30px}
+
+@media (max-width:560px){
+  .item{grid-template-columns:1fr 1fr}
+  .marks{grid-column:1 / -1;justify-content:flex-end}
+  .label{min-width:100%}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>中学英単語れんしゅう</h1>
+  <p class="lead">英語か日本語を隠して、思い出す練習をしよう。隠れたところをタップすると答えが出ます。</p>
+</header>
+<main>
+  <section class="panel">
+    <div class="row"><span class="label">かくす</span>
+      <button class="chip" data-hide="en">英語をかくす</button>
+      <button class="chip" data-hide="ja">日本語をかくす</button>
+    </div>
+    <div class="row"><span class="label">はんい</span><span id="cats" class="row" style="margin:0"></span></div>
+    <div class="row"><span class="label">しぼる</span>
+      <button class="chip" data-only="all">ぜんぶ</button>
+      <button class="chip" data-only="ng">「まだ」だけ</button>
+      <button class="chip" data-only="notok">「覚えた」以外</button>
+    </div>
+    <div class="row"><span class="label">表示</span>
+      <button class="chip" data-view="list">一覧</button>
+      <button class="chip" data-view="card">1問ずつ</button>
+      <button id="shuffle">シャッフル</button>
+      <button id="order">元の順番</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="row" id="listtools"><span class="label">一覧</span>
+      <button id="showall">答えを全部見せる</button>
+      <button id="hideall">全部かくす</button>
+      <button id="resetmarks">印をリセット</button>
+    </div>
+  </section>
+
+  <section id="listview" class="list"></section>
+
+  <section id="cardview" class="cardwrap" hidden>
+    <div class="bigcard">
+      <div class="progress" id="prog"></div>
+      <div class="q" id="q"></div>
+      <div class="a cover" id="a"></div>
+    </div>
+    <div class="cardbtns">
+      <button id="prev">← 前へ</button>
+      <button id="reveal">答えを見る</button>
+      <button id="markng" class="mk ng">まだ</button>
+      <button id="markok" class="mk ok">覚えた</button>
+      <button id="next">次へ →</button>
+    </div>
+    <div class="hint">キーボード：スペース＝答え ／ ←→＝前・次 ／ 1＝まだ ／ 2＝覚えた</div>
+  </section>
+</main>
+
+<script>
+// 出典: https://pikuumedia.com/chugakueitango/ （明らかな誤字のみ修正）
+const RAW = {
+"動詞":[
+["agree","（人の意見・提案などに）同意する、賛成する"],["answer","（質問など）に答える"],["arrive","着く、到着する"],
+["beat","たたく。（相手）を打ち負かす"],["believe","～を信じる"],["blow","（風が）吹く"],
+["bring","～を持って来る。（人）を連れて来る"],["care","世話をする"],["carry","を運ぶ、持っていく"],
+["choose","を選ぶ、選択する"],["collect","を集める。を収集する"],["cost","（金額・費用など）がかかる。～の値段である。（時間・労働）がかかる"],
+["cross","を横切る、横断する"],["cry","涙を流して泣く"],["decide","を決める、決心する"],
+["disappear","見えなくなる、消える"],["draw","を描く"],["explain","～を説明する"],
+["express","を表現する"],["fall","落ちる。転倒する"],["find","を発見する。（偶然に）～を見つける"],
+["follow","の後についていく"],["forget","～するのを忘れる"],["grow","成長する"],
+["guess","～を推測する。を言い当てる"],["guide","を案内する、道案内する"],["hear","が聞こえる"],
+["hold","を手に持つ。保管する"],["hurry","を急がせる。を急いでする"],["introduce","を紹介する"],
+["invite","招き入れる。を招待する"],["laugh","笑う"],["learn","を習得する"],
+["leave","を去る、出発する"],["lend","を貸す"],["let","させてやる、することを許す"],
+["mean","～を意味する"],["notice","～に気づく、わかる"],["pay","を支払う。～の代金を払う"],
+["promise","を約束する。～すると約束する"],["reach","に着く、到着する"],["receive","を受け取る"],
+["remember","を思い出す。を覚えている"],["report","を報告する、知らせる。を報道する"],["return","戻る、復帰する"],
+["seem","思われる。まるで～のようだ"],["sell","を売る、販売している"],["send","を送る"],
+["share","～を分かち合う、分け合う、共有する"],["show","を見せる"],["spend","を使う、費やす。を過ごす"],
+["stay","とどまる、滞在する"],["take","を取る。を連れていく"],["think","～と思う、信じる。考える"],
+["throw","を投げる"],["try","を試みる、試しにやってみる。～しようと試みる"],["understand","～を理解する"],
+["visit","を訪問する、訪ねる。（～の場所）へ行く、訪れる"],["wait","を待つ。～するのを待つ"],["wear","を身につけている"],
+["wish","～を強く望む"],["worry","心配する"]],
+"形容詞":[
+["afraid","恐れる。～がこわい"],["amazing","びっくりするような"],["angry","怒って"],["beautiful","美しい"],
+["brave","勇敢な"],["bright","輝いている"],["careful","注意深い"],["certain","～を確信している"],
+["cheap","安い、安価な"],["clever","気の利いた、巧妙な、賢い"],["cold","寒い、冷たい"],["common","よく起こる、普通の、共通の"],
+["dead","死んでいる、枯れている、機能しない"],["delicious","とても美味しい"],["different","違った、別の"],["difficult","難しい、困難な"],
+["each","それぞれの"],["early","早い"],["empty","空の、中身のない"],["favorite","最もお気に入りの"],
+["former","前の、以前の"],["heavy","重い"],["honest","正直な、誠実な"],["hungry","空腹の、飢えた"],
+["ill","病気の、気分が悪い"],["important","重要な、重大な"],["initial","最初の、初期の"],["interesting","興味を起こさせる、関心を引く"],
+["kind","親切な、思いやりのある"],["lonely","ひとりぼっちの、孤独な"],["narrow","狭い"],["necessary","必要な"],
+["particular","特定の、特有の、独特の"],["strong","強い"],["tall","背の高い、高い"],["thick","厚い、厚手の、太い"],
+["thin","やせた、ほっそりした"],["useful","役に立つ、便利な、有益な"],["various","さまざまな、いろいろな"],["warm","暖かい"],
+["whole","全体の"],["wise","賢い"],["wonderful","素晴らしい"],["wrong","誤っている"]],
+"副詞":[
+["about","約、ぐらい、およそ"],["again","再び。もう一度、さらに"],["almost","ほとんど、ほぼ"],["alone","一人で、～だけで"],
+["anyway","いずれにしても、とにかく"],["even","～でさえ。さらに"],["far","遠くに。はるかに"],["often","しばしば"],
+["quite","非常に、とても"],["really","本当に"],["still","まだ、依然として"],["usually","ふつうは、いつもは"],["well","良く、上手く"]],
+"曜日":[
+["Monday","月曜日","マンデー"],["Tuesday","火曜日","チューズデー"],["Wednesday","水曜日","ウェンズデー"],["Thursday","木曜日","サースデー"],
+["Friday","金曜日","フライデー"],["Saturday","土曜日","サタデー"],["Sunday","日曜日","サンデー"]],
+"月":[
+["January","1月","ジャニュアリー"],["February","2月","フェブラリー"],["March","3月","マーチ"],["April","4月","エイプリル"],
+["May","5月","メイ"],["June","6月","ジューン"],["July","7月","ジュライ"],["August","8月","オーガスト"],
+["September","9月","セプテンバー"],["October","10月","オクトーバー"],["November","11月","ノベンバー"],["December","12月","ディッセンバー"]]
+};
+
+const WORDS = [];
+for (const [cat, list] of Object.entries(RAW)) {
+  for (const [en, ja, yomi] of list) WORDS.push({ id: cat + ":" + en, cat, en, ja, yomi: yomi || "" });
+}
+const CATS = Object.keys(RAW);
+
+function load(key, fallback){ try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; } }
+function save(key, val){ try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
+
+const state = Object.assign(
+  { hide: "en", cats: CATS.slice(), only: "all", view: "list", shuffled: false },
+  load("eitango-settings", {})
+);
+let marks = load("eitango-marks", {});   // id -> "ok" | "ng"
+let order = WORDS.map((_, i) => i);
+let revealed = new Set();
+let cardIndex = 0, cardShown = false;
+
+function current(){
+  return order.map(i => WORDS[i]).filter(w =>
+    state.cats.includes(w.cat) &&
+    (state.only === "all" || (state.only === "ng" ? marks[w.id] === "ng" : marks[w.id] !== "ok")));
+}
+function esc(s){ return s.replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function jaHtml(w){ return esc(w.ja) + (w.yomi ? `<span class="yomi">読み方：${esc(w.yomi)}</span>` : ""); }
+
+function renderControls(){
+  document.querySelectorAll("[data-hide]").forEach(b => b.classList.toggle("on", b.dataset.hide === state.hide));
+  document.querySelectorAll("[data-only]").forEach(b => b.classList.toggle("on", b.dataset.only === state.only));
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === state.view));
+  document.querySelectorAll("[data-cat]").forEach(b => b.classList.toggle("on", state.cats.includes(b.dataset.cat)));
+  document.getElementById("listtools").hidden = state.view !== "list";
+  document.getElementById("listview").hidden = state.view !== "list";
+  document.getElementById("cardview").hidden = state.view !== "card";
+  const ws = current();
+  const ok = ws.filter(w => marks[w.id] === "ok").length;
+  document.getElementById("count").textContent = `${ws.length}語（覚えた ${ok}）`;
+  save("eitango-settings", state);
+}
+
+function renderList(){
+  const box = document.getElementById("listview");
+  const ws = current();
+  if (!ws.length){ box.innerHTML = `<div class="empty">この条件の単語はありません</div>`; return; }
+  box.innerHTML = ws.map(w => {
+    const open = revealed.has(w.id);
+    const enHidden = state.hide === "en" && !open, jaHidden = state.hide === "ja" && !open;
+    const m = marks[w.id];
+    const enCell = `<div class="cell en ${enHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${esc(w.en)}</span></div>`;
+    const jaCell = `<div class="cell ja ${jaHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${jaHtml(w)}</span></div>`;
+    return `<div class="item ${m === "ok" ? "isok" : m === "ng" ? "isng" : ""}">
+      ${state.hide === "ja" ? enCell + jaCell : jaCell + enCell}
+      <div class="marks">
+        <button class="mk ng ${m === "ng" ? "on" : ""}" data-mark="ng" data-id="${esc(w.id)}">まだ</button>
+        <button class="mk ok ${m === "ok" ? "on" : ""}" data-mark="ok" data-id="${esc(w.id)}">覚えた</button>
+      </div></div>`;
+  }).join("");
+}
+
+function renderCard(){
+  const ws = current();
+  const q = document.getElementById("q"), a = document.getElementById("a");
+  if (!ws.length){
+    document.getElementById("prog").textContent = "";
+    q.textContent = "この条件の単語はありません"; q.className = "q jaq"; a.innerHTML = ""; a.className = "a"; return;
+  }
+  if (cardIndex >= ws.length) cardIndex = ws.length - 1;
+  if (cardIndex < 0) cardIndex = 0;
+  const w = ws[cardIndex];
+  document.getElementById("prog").textContent = `${cardIndex + 1} / ${ws.length}　・　${w.cat}`;
+  if (state.hide === "en"){ q.innerHTML = jaHtml(w); q.className = "q jaq"; a.textContent = w.en; }
+  else { q.textContent = w.en; q.className = "q"; a.innerHTML = jaHtml(w); }
+  a.className = "a" + (cardShown ? "" : " cover");
+  document.getElementById("reveal").textContent = cardShown ? "かくす" : "答えを見る";
+  document.getElementById("markng").classList.toggle("on", marks[w.id] === "ng");
+  document.getElementById("markok").classList.toggle("on", marks[w.id] === "ok");
+}
+
+function render(){ renderControls(); state.view === "list" ? renderList() : renderCard(); }
+
+function setMark(id, val){
+  if (marks[id] === val) delete marks[id]; else marks[id] = val;
+  save("eitango-marks", marks);
+}
+function shuffle(){
+  order = WORDS.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+}
+function resetCard(){ cardIndex = 0; cardShown = false; }
+
+// はんいボタン
+document.getElementById("cats").innerHTML =
+  `<button class="chip" data-allcats>すべて</button>` +
+  CATS.map(c => `<button class="chip" data-cat="${c}">${c}（${RAW[c].length}）</button>`).join("");
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button,[data-rev],.a");
+  if (!t) return;
+  if (t.dataset.hide){ state.hide = t.dataset.hide; revealed.clear(); cardShown = false; }
+  else if (t.dataset.only){ state.only = t.dataset.only; resetCard(); }
+  else if (t.dataset.view){ state.view = t.dataset.view; cardShown = false; }
+  else if (t.hasAttribute("data-allcats")){ state.cats = state.cats.length === CATS.length ? [] : CATS.slice(); resetCard(); }
+  else if (t.dataset.cat){
+    const c = t.dataset.cat;
+    // 1つだけ選びたいことが多いので、全部選択中に押したらその1つだけにする
+    if (state.cats.length === CATS.length) state.cats = [c];
+    else state.cats = state.cats.includes(c) ? state.cats.filter(x => x !== c) : [...state.cats, c];
+    resetCard();
+  }
+  else if (t.dataset.rev){ const id = t.dataset.rev; revealed.has(id) ? revealed.delete(id) : revealed.add(id); }
+  else if (t.dataset.mark){ setMark(t.dataset.id, t.dataset.mark); }
+  else if (t.id === "shuffle"){ shuffle(); state.shuffled = true; resetCard(); }
+  else if (t.id === "order"){ order = WORDS.map((_, i) => i); state.shuffled = false; resetCard(); }
+  else if (t.id === "showall"){ current().forEach(w => revealed.add(w.id)); }
+  else if (t.id === "hideall"){ revealed.clear(); }
+  else if (t.id === "resetmarks"){ if (confirm("「覚えた／まだ」の印をすべて消しますか？")){ marks = {}; save("eitango-marks", marks); } }
+  else if (t.id === "reveal" || t.id === "a"){ cardShown = !cardShown; }
+  else if (t.id === "next"){ cardIndex++; cardShown = false; if (cardIndex >= current().length) cardIndex = 0; }
+  else if (t.id === "prev"){ cardIndex--; cardShown = false; if (cardIndex < 0) cardIndex = Math.max(current().length - 1, 0); }
+  else if (t.id === "markng" || t.id === "markok"){
+    const w = current()[cardIndex];
+    if (w){
+      const before = current().length;
+      setMark(w.id, t.id === "markok" ? "ok" : "ng");
+      // しぼり込み中で単語がリストから外れたら、同じ位置の次の単語を表示する
+      if (current().length < before) cardShown = false;
+    }
+  }
+  else return;
+  render();
+});
+
+document.addEventListener("keydown", e => {
+  if (state.view !== "card") return;
+  const map = { " ":"reveal", ArrowRight:"next", ArrowLeft:"prev", "1":"markng", "2":"markok" };
+  if (map[e.key]){ e.preventDefault(); document.getElementById(map[e.key]).click(); }
+});
+
+if (state.shuffled) shuffle();
+render();
+</script>
+</body>
+</html>
