@@ -55,8 +55,10 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 
 /* 一覧 */
 .list{display:grid;gap:8px}
-.item{display:grid;grid-template-columns:1fr 1.6fr auto;gap:10px;align-items:center;
+.item{display:grid;grid-template-columns:3.4em 1fr 1.6fr auto;gap:10px;align-items:center;
   background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.no{font-size:1.1rem;font-weight:700;color:var(--sub);text-align:center;line-height:1.2}
+.no small{display:block;font-size:.65rem;font-weight:400}
 .en{font-size:1.25rem;font-weight:700;letter-spacing:.01em}
 .ja{font-size:1rem}
 .yomi{display:block;font-size:.8rem;color:var(--sub);font-weight:400}
@@ -112,7 +114,7 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 .msg{font-size:.85rem;color:var(--ok)}
 
 @media (max-width:560px){
-  .item{grid-template-columns:1fr 1fr}
+  .item{grid-template-columns:2.8em 1fr 1fr}
   .marks{grid-column:1 / -1;justify-content:flex-end}
   .label{min-width:100%}
 }
@@ -364,6 +366,7 @@ function renderList(){
     const enCell = `<div class="cell en ${enHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${enHtml(w)}</span></div>`;
     const jaCell = `<div class="cell ja ${jaHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${jaHtml(w)}</span></div>`;
     return `<div class="item ${m === "ok" ? "isok" : m === "ng" ? "isng" : ""}">
+      <div class="no"><small>${esc(w.cat)}</small>${w.no}</div>
       ${state.hide === "ja" ? enCell + jaCell : jaCell + enCell}
       <div class="marks">
         ${isPickWrong(w) ? `<span class="badge">テストで×</span>` : ""}
@@ -388,7 +391,7 @@ function renderCard(){
   if (cardIndex >= ws.length) cardIndex = ws.length - 1;
   if (cardIndex < 0) cardIndex = 0;
   const w = ws[cardIndex];
-  document.getElementById("prog").innerHTML = `${cardIndex + 1} / ${ws.length}　・　${esc(w.cat)}` +
+  document.getElementById("prog").innerHTML = `${cardIndex + 1} / ${ws.length}　・　${esc(w.cat)} ${w.no}番` +
     (isPickWrong(w) ? `　<span class="badge">テストで×</span>` : "");
   showQA(w, state.hide, q, a);
   a.className = "a" + (cardShown ? "" : " cover");
@@ -409,7 +412,7 @@ function renderTest(){
     let next = "";
     if (state.testMode === "seq" && n){
       const w = pool[seqStart(pool)];
-      next = ` ／ 次は「${w.en}」（${w.cat}の${w.no}番目）から`;
+      next = ` ／ 次は${w.cat}${w.no}番「${w.en}」から`;
     }
     document.getElementById("testinfo").textContent =
       `出し方：${dirLabel(state.hide)} ／ はんい：${catLabel(state.cats)} ／ 出題できる単語：${n}語${next}`;
@@ -460,7 +463,7 @@ function startTest(){
     if (!picked.length) return;
     const last = picked[picked.length - 1];
     nextPos = IDX[last.id] + 1;
-    range = `${picked[0].en} ～ ${last.en}`;
+    range = `${picked[0].cat}${picked[0].no}番 ${picked[0].en} ～ ${last.cat}${last.no}番 ${last.en}`;
     items = (state.testMix ? shuffled(picked) : picked).map(w => w.id);
   } else {
     const pool = shuffled(current());
