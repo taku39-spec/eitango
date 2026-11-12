@@ -65,6 +65,8 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 .cell{border-radius:8px;padding:4px 8px;min-height:2.2em;display:flex;flex-direction:column;justify-content:center}
 .hidden{background:var(--cover);color:transparent;cursor:pointer;user-select:none;position:relative}
 .hidden *{visibility:hidden}
+.enline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.say{padding:3px 9px;font-size:.9rem;line-height:1.2}
 .hidden::after{content:"タップで答え";position:absolute;inset:0;display:flex;align-items:center;
   justify-content:center;color:var(--cover-ink);font-size:.8rem}
 .marks{display:flex;gap:4px}
@@ -167,11 +169,12 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
     <div class="cardbtns">
       <button id="prev">← 前へ</button>
       <button id="reveal">答えを見る</button>
+      <button id="speak" class="say-big">🔊 発音</button>
       <button id="markng" class="mk ng">まだ</button>
       <button id="markok" class="mk ok">覚えた</button>
       <button id="next">次へ →</button>
     </div>
-    <div class="hint">キーボード：スペース＝答え ／ ←→＝前・次 ／ 1＝まだ ／ 2＝覚えた</div>
+    <div class="hint">キーボード：スペース＝答え ／ ←→＝前・次 ／ 1＝まだ ／ 2＝覚えた ／ S＝発音</div>
   </section>
 
   <section id="testview" hidden>
@@ -203,11 +206,12 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
       </div>
       <div class="cardbtns">
         <button id="treveal">答えを見る</button>
+        <button id="tspeak" class="say-big">🔊 発音</button>
         <button id="tng" class="judge ng">×</button>
         <button id="tok" class="judge ok">○</button>
       </div>
       <div class="cardbtns"><button id="tback">1問もどる</button><button id="tquit">テストをやめる</button></div>
-      <div class="hint">キーボード：スペース＝答え ／ 1またはX＝× ／ 2またはO＝○ ／ Backspace＝1問もどる</div>
+      <div class="hint">キーボード：スペース＝答え ／ 1またはX＝× ／ 2またはO＝○ ／ Backspace＝1問もどる ／ S＝発音</div>
     </div>
     <div id="testdone" class="cardwrap" hidden>
       <div class="bigcard">
@@ -286,7 +290,11 @@ const RAW = {
 "月":[
 ["January","1月","ジャニュアリー"],["February","2月","フェブラリー"],["March","3月","マーチ"],["April","4月","エイプリル"],
 ["May","5月","メイ"],["June","6月","ジューン"],["July","7月","ジュライ"],["August","8月","オーガスト"],
-["September","9月","セプテンバー"],["October","10月","オクトーバー"],["November","11月","ノベンバー"],["December","12月","ディッセンバー"]]
+["September","9月","セプテンバー"],["October","10月","オクトーバー"],["November","11月","ノベンバー"],["December","12月","ディッセンバー"]],
+// 指導中にわからなかった単語（ここに足していく。ほかの範囲と重なってもよい）
+"指導中わからなかった単語":[
+["kind","親切な、やさしい。（名詞）種類"],["always","いつも、常に"],["sometimes","ときどき"],
+["large","大きい、広い"],["early","早い。（副詞）早く"]]
 };
 
 const WORDS = [];
@@ -327,6 +335,29 @@ function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&l
 function jaHtml(w){ return esc(w.ja); }
 // 読み方は答えのヒントになるので、英語の側に付ける
 function enHtml(w){ return esc(w.en) + (w.yomi ? `<span class="yomi">読み方：${esc(w.yomi)}</span>` : ""); }
+// ===== 発音（ブラウザの読み上げ機能を使う） =====
+const CAN_SPEAK = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+function englishVoice(){
+  const vs = speechSynthesis.getVoices();
+  return vs.find(v => v.lang === "en-US") || vs.find(v => /^en/i.test(v.lang)) || null;
+}
+function speak(text){
+  if (!CAN_SPEAK || !text) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US"; u.rate = 0.85;
+  const v = englishVoice(); if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+if (CAN_SPEAK) speechSynthesis.getVoices();   // 声の一覧を先に読み込んでおく
+function sayBtn(w){ return CAN_SPEAK ? `<button class="say" data-say="${esc(w.en)}" title="発音を聞く">🔊</button>` : ""; }
+// 英語が隠れている間は発音ボタンを押せないようにする（答えのヒントになるため）
+function setSpeakBtn(id, hide, shown){
+  const b = document.getElementById(id);
+  b.hidden = !CAN_SPEAK;
+  b.disabled = hide === "en" && !shown;
+}
+
 function catLabel(cats){ return cats.length === CATS.length ? "すべて" : cats.join("・"); }
 function dirLabel(hide){ return hide === "en" ? "日本語→英語" : "英語→日本語"; }
 function fmtDate(iso){
@@ -363,7 +394,7 @@ function renderList(){
     const open = revealed.has(w.id);
     const enHidden = state.hide === "en" && !open, jaHidden = state.hide === "ja" && !open;
     const m = marks[w.id];
-    const enCell = `<div class="cell en ${enHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${enHtml(w)}</span></div>`;
+    const enCell = `<div class="cell en ${enHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><div class="enline"><span>${enHtml(w)}</span>${sayBtn(w)}</div></div>`;
     const jaCell = `<div class="cell ja ${jaHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${jaHtml(w)}</span></div>`;
     return `<div class="item ${m === "ok" ? "isok" : m === "ng" ? "isng" : ""}">
       <div class="no"><small>${esc(w.cat)}</small>${w.no}</div>
@@ -396,6 +427,7 @@ function renderCard(){
   showQA(w, state.hide, q, a);
   a.className = "a" + (cardShown ? "" : " cover");
   document.getElementById("reveal").textContent = cardShown ? "かくす" : "答えを見る";
+  setSpeakBtn("speak", state.hide, cardShown);
   document.getElementById("markng").classList.toggle("on", marks[w.id] === "ng");
   document.getElementById("markok").classList.toggle("on", marks[w.id] === "ok");
 }
@@ -426,6 +458,7 @@ function renderTest(){
     showQA(w, test.hide, document.getElementById("tq"), ta);
     ta.className = "a" + (test.shown ? "" : " cover");
     document.getElementById("treveal").textContent = test.shown ? "かくす" : "答えを見る";
+    setSpeakBtn("tspeak", test.hide, test.shown);
     document.getElementById("tback").disabled = test.i === 0;
     return;
   }
@@ -586,6 +619,10 @@ document.getElementById("cats").innerHTML =
 document.addEventListener("click", e => {
   const t = e.target.closest("button,[data-rev],.a");
   if (!t) return;
+  // 発音ボタンは画面を描き直さずに読み上げるだけ
+  if (t.dataset.say){ speak(t.dataset.say); return; }
+  if (t.id === "speak"){ const w = current()[cardIndex]; if (w) speak(w.en); return; }
+  if (t.id === "tspeak"){ if (test && !test.finished) speak(BY_ID[test.items[test.i]].en); return; }
   if (test && !test.finished && t.closest(".panel") && t.closest("main > .panel")){
     // テスト中に上の設定を変えると出題が崩れるので、先にやめるか確認する
     if (!confirm("テストの途中です。やめて設定を変えますか？")) return;
@@ -665,10 +702,14 @@ document.getElementById("importfile").addEventListener("change", e => {
 document.addEventListener("keydown", e => {
   if (e.target instanceof Element && e.target.matches("input,select,textarea")) return;
   let map = null;
-  if (state.view === "card") map = { " ":"reveal", ArrowRight:"next", ArrowLeft:"prev", "1":"markng", "2":"markok" };
+  if (state.view === "card") map = { " ":"reveal", ArrowRight:"next", ArrowLeft:"prev", "1":"markng", "2":"markok", s:"speak", S:"speak" };
   if (state.view === "test" && test && !test.finished)
-    map = { " ":"treveal", "1":"tng", x:"tng", X:"tng", "2":"tok", o:"tok", O:"tok", Backspace:"tback" };
-  if (map && map[e.key]){ e.preventDefault(); document.getElementById(map[e.key]).click(); }
+    map = { " ":"treveal", "1":"tng", x:"tng", X:"tng", "2":"tok", o:"tok", O:"tok", Backspace:"tback", s:"tspeak", S:"tspeak" };
+  if (map && map[e.key]){
+    e.preventDefault();
+    const b = document.getElementById(map[e.key]);
+    if (!b.disabled && !b.hidden) b.click();
+  }
 });
 
 if (state.shuffled) shuffle();
