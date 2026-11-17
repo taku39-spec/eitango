@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中学英語れんしゅう｜文法</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1f2328; --sub:#6b6f76; --line:#e3dfd6;
+  --accent:#2f6fde; --accent-soft:#e6eefc; --cover:#d9dde4; --cover-ink:#7a808a;
+  --ok:#1f8a4c; --ok-soft:#e3f4ea; --ng:#c2410c; --ng-soft:#fdebe1;
+  /* 設定の行ごとの色 */
+  --g-hide:#2f6fde; --g-cat:#0e7f86; --g-only:#a8660b; --g-view:#7647c9; --on-ink:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16181c; --card:#1f2228; --ink:#eceef1; --sub:#9aa0a9; --line:#30343c;
+    --accent:#6ea0ff; --accent-soft:#22304a; --cover:#3a3f48; --cover-ink:#a3a9b3;
+    --ok:#4cc27d; --ok-soft:#1c3327; --ng:#f08a5d; --ng-soft:#3a251c;
+    --g-hide:#6ea0ff; --g-cat:#3cc6bd; --g-only:#e5aa45; --g-view:#ad8cf2; --on-ink:#14161a;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;line-height:1.5}
+header{padding:16px;max-width:960px;margin:0 auto}
+h1{font-size:1.4rem;margin:0 0 4px}
+.lead{color:var(--sub);font-size:.9rem;margin:0}
+/* 英単語・文法の切り替えタブ（index.html と同じ） */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 8px;border:2px solid var(--line);
+  border-radius:14px;background:var(--card);color:var(--ink);text-decoration:none;text-align:center}
+.tab b{font-size:1.25rem}
+.tab span{font-size:.8rem;color:var(--sub)}
+.tab:hover{border-color:var(--accent)}
+.tab.on{background:var(--accent);border-color:var(--accent);color:var(--on-ink);cursor:default}
+.tab.on span{color:inherit;opacity:.85}
+main{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.label{font-size:.85rem;color:var(--sub);min-width:4.5em}
+button,.chip,select{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:7px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+.chip.on,button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.count{font-size:.85rem;color:var(--sub);margin-left:auto}
+.row[data-group=hide]{--c:var(--g-hide)}
+.row[data-group=cat]{--c:var(--g-cat)}
+.row[data-group=only]{--c:var(--g-only)}
+.row[data-group=view]{--c:var(--g-view)}
+.row[data-group] > .label{color:var(--c);font-weight:700}
+.row[data-group] .chip:hover{border-color:var(--c)}
+.row[data-group] .chip.on{background:var(--c);border-color:var(--c);color:var(--on-ink)}
+/* 確認テストの準備は「表示」と同じ紫にそろえる */
+#testsetup{border-color:var(--g-view)}
+#testsetup .label{color:var(--g-view);font-weight:700}
+#testsetup .chip:hover,#testsetup button:hover{border-color:var(--g-view)}
+#testsetup .chip.on,#testsetup .primary{background:var(--g-view);border-color:var(--g-view);color:var(--on-ink)}
+#testsetup input[type=checkbox]{accent-color:var(--g-view)}
+.badge{display:inline-block;font-size:.75rem;font-weight:700;color:#fff;background:var(--ng);
+  border-radius:6px;padding:2px 7px;white-space:nowrap}
+
+/* 一覧 */
+.list{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:3.4em 1fr 1.6fr auto;gap:6px 10px;align-items:center;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.no{font-size:1.1rem;font-weight:700;color:var(--sub);text-align:center;line-height:1.2}
+.no small{display:block;font-size:.65rem;font-weight:400}
+.nm{font-size:1.05rem;font-weight:700}
+.fm{font-size:1.1rem;font-weight:700;color:var(--accent)}
+.cell{border-radius:8px;padding:4px 8px;min-height:2.2em;display:flex;flex-direction:column;justify-content:center}
+.hidden{background:var(--cover);color:transparent;cursor:pointer;user-select:none;position:relative}
+.hidden *{visibility:hidden}
+.hidden::after{content:"タップで答え";position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;color:var(--cover-ink);font-size:.8rem}
+/* 例文（答えと一緒に出る） */
+.ex{grid-column:2 / 4;grid-row:2;font-size:.92rem;border-left:3px solid var(--line);
+  padding:2px 0 2px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ex.wait{color:var(--sub);font-size:.8rem;cursor:pointer}
+.exen{font-weight:700}
+.exja{display:block;color:var(--sub);font-size:.85rem}
+.say{padding:3px 9px;font-size:.9rem;line-height:1.2}
+.marks{display:flex;gap:4px;grid-column:4;grid-row:1}
+.mk{padding:5px 10px;font-size:.8rem}
+.mk.ok.on{background:var(--ok);border-color:var(--ok)}
+.mk.ng.on{background:var(--ng);border-color:var(--ng)}
+.item.isok{background:var(--ok-soft)}
+.item.isng{background:var(--ng-soft)}
+
+/* カード・テスト */
+.cardwrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.bigcard{width:100%;max-width:720px;min-height:320px;background:var(--card);border:1px solid var(--line);
+  border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:28px 20px;text-align:center;gap:18px}
+.progress{color:var(--sub);font-size:.9rem}
+.q{font-size:clamp(1.4rem,5vw,2.4rem);font-weight:700;word-break:break-word}
+.q.fmq{color:var(--accent)}
+.a{font-size:clamp(1.2rem,4vw,2rem);min-height:1.6em;color:var(--accent);word-break:break-word;font-weight:700}
+.a.cover{background:var(--cover);color:transparent;border-radius:10px;min-width:60%;cursor:pointer}
+.a.cover *{visibility:hidden}
+.a.nmans{color:var(--ink)}
+.a .cardex{display:block;margin-top:14px;font-size:clamp(1rem,3.4vw,1.25rem);font-weight:400;color:var(--ink)}
+.a .cardex .exja{font-size:.9em}
+.cardbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.cardbtns button{padding:10px 18px;font-size:1rem}
+.judge{padding:12px 34px !important;font-size:1.3rem !important;font-weight:700;color:#fff}
+.judge.ok{background:var(--ok);border-color:var(--ok)}
+.judge.ng{background:var(--ng);border-color:var(--ng)}
+.hint{font-size:.8rem;color:var(--sub)}
+.empty{text-align:center;color:var(--sub);padding:30px}
+.score{font-size:clamp(2.4rem,8vw,4rem);font-weight:700}
+.wronglist{text-align:left;margin:0;padding-left:1.2em}
+
+/* 記録 */
+.rec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.rechead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.recdate{font-weight:700}
+.recmeta{color:var(--sub);font-size:.85rem}
+.recscore{margin-left:auto;font-weight:700;font-size:1.1rem}
+.bar{height:6px;background:var(--line);border-radius:99px;margin:8px 0;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--ok)}
+.recwrong{font-size:.9rem}
+.recwrong b{margin-right:4px}
+.recbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.recbtns button{padding:5px 12px;font-size:.85rem}
+.del{color:var(--ng)}
+.stats{display:flex;flex-wrap:wrap;gap:18px}
+.stats div{font-size:.85rem;color:var(--sub)}
+.stats b{display:block;font-size:1.4rem;color:var(--ink)}
+.msg{font-size:.85rem;color:var(--ok)}
+
+@media (max-width:560px){
+  .item{grid-template-columns:2.8em 1fr 1fr}
+  .ex{grid-column:1 / -1;grid-row:auto}
+  .marks{grid-column:1 / -1;grid-row:auto;justify-content:flex-end}
+  .label{min-width:100%}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>中学英語れんしゅう</h1>
+  <nav class="tabs">
+    <a class="tab" href="index.html"><b>英単語</b><span>単語の意味を覚える</span></a>
+    <a class="tab on" href="grammar.html" aria-current="page"><b>文法</b><span>文法の形と例文を覚える</span></a>
+  </nav>
+  <p class="lead">文法の名前か形を隠して、思い出す練習をしよう。隠れたところをタップすると、答えと例文が出ます。</p>
+</header>
+<main>
+  <section class="panel">
+    <div class="row" data-group="hide"><span class="label">かくす</span>
+      <button class="chip" data-hide="form">形をかくす</button>
+      <button class="chip" data-hide="name">名前をかくす</button>
+    </div>
+    <div class="row" data-group="cat"><span class="label">はんい</span><span id="cats" class="row" style="margin:0"></span></div>
+    <div class="row" data-group="only"><span class="label">しぼる</span>
+      <button class="chip" data-only="all">ぜんぶ</button>
+      <button class="chip" data-only="ng">「まだ」だけ</button>
+      <button class="chip" data-only="notok">「覚えた」以外</button>
+      <button class="chip" data-only="pick" id="onlypick"></button>
+    </div>
+    <div class="row" data-group="view"><span class="label">表示</span>
+      <button class="chip" data-view="list">一覧</button>
+      <button class="chip" data-view="card">1問ずつ</button>
+      <button class="chip" data-view="test">確認テスト</button>
+      <button class="chip" data-view="records">テスト記録</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="row" id="ordertools"><span class="label">順番</span>
+      <button id="shuffle">シャッフル</button>
+      <button id="order">元の順番</button>
+    </div>
+    <div class="row" id="listtools"><span class="label">一覧</span>
+      <button id="showall">答えを全部見せる</button>
+      <button id="hideall">全部かくす</button>
+      <button id="resetmarks">印をリセット</button>
+    </div>
+  </section>
+
+  <section id="listview" class="list"></section>
+
+  <section id="cardview" class="cardwrap" hidden>
+    <div class="bigcard">
+      <div class="progress" id="prog"></div>
+      <div class="q" id="q"></div>
+      <div class="a cover" id="a"></div>
+    </div>
+    <div class="cardbtns">
+      <button id="prev">← 前へ</button>
+      <button id="reveal">答えを見る</button>
+      <button id="speak">🔊 例文</button>
+      <button id="markng" class="mk ng">まだ</button>
+      <button id="markok" class="mk ok">覚えた</button>
+      <button id="next">次へ →</button>
+    </div>
+    <div class="hint">キーボード：スペース＝答え ／ ←→＝前・次 ／ 1＝まだ ／ 2＝覚えた ／ S＝例文の発音</div>
+  </section>
+
+  <section id="testview" hidden>
+    <div id="testsetup" class="panel">
+      <p style="margin-top:0">上の「かくす」「はんい」「しぼる」で選んだ文法から出題します。</p>
+      <div class="row"><span class="label">出題のしかた</span>
+        <button class="chip" data-tmode="seq">続きから（順番どおり）</button>
+        <button class="chip" data-tmode="rand">ランダム</button>
+      </div>
+      <div class="row" id="seqtools"><span class="label"></span>
+        <label><input type="checkbox" id="testmix"> この回の中では順番をまぜる</label>
+        <button id="seqreset">最初からにする</button>
+      </div>
+      <div class="row"><span class="label">問題数</span>
+        <select id="testnum">
+          <option value="5">5問</option><option value="10" selected>10問</option>
+          <option value="15">15問</option><option value="20">20問</option>
+          <option value="all">全部</option>
+        </select>
+        <button class="primary" id="teststart">テスト開始</button>
+      </div>
+      <div class="hint" id="testinfo"></div>
+    </div>
+    <div id="testrun" class="cardwrap" hidden>
+      <div class="bigcard">
+        <div class="progress" id="tprog"></div>
+        <div class="q" id="tq"></div>
+        <div class="a cover" id="ta"></div>
+      </div>
+      <div class="cardbtns">
+        <button id="treveal">答えを見る</button>
+        <button id="tspeak">🔊 例文</button>
+        <button id="tng" class="judge ng">×</button>
+        <button id="tok" class="judge ok">○</button>
+      </div>
+      <div class="cardbtns"><button id="tback">1問もどる</button><button id="tquit">テストをやめる</button></div>
+      <div class="hint">キーボード：スペース＝答え ／ 1またはX＝× ／ 2またはO＝○ ／ Backspace＝1問もどる ／ S＝例文の発音</div>
+    </div>
+    <div id="testdone" class="cardwrap" hidden>
+      <div class="bigcard">
+        <div class="progress" id="dmeta"></div>
+        <div class="score" id="dscore"></div>
+        <div id="dwrong" style="width:100%;max-width:560px"></div>
+      </div>
+      <div class="cardbtns">
+        <button class="primary" id="tsave">記録する</button>
+        <button id="treview">記録して復習する</button>
+        <button id="tdiscard">記録しないで終わる</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="recview" hidden>
+    <div class="panel">
+      <div class="stats" id="stats"></div>
+      <div class="row" style="margin-top:12px">
+        <button id="practiceallwrong">これまでの×を全部練習</button>
+        <button id="exportrec">記録をファイルに書き出す</button>
+        <button id="importrec">ファイルから読み込む</button>
+        <input type="file" id="importfile" accept=".json,application/json" hidden>
+        <span class="msg" id="recmsg"></span>
+      </div>
+      <div class="hint">記録はこのパソコンのこのブラウザにだけ保存されます。ブラウザのデータを消すと記録も消えるので、ときどき書き出しておいてください。</div>
+    </div>
+    <div id="reclist"></div>
+  </section>
+</main>
+
+<script>
+// [文法の名前, 形, 例文, 例文の訳]  学年の分け方は教科書によって少し違うので目安
+const RAW = {
+"中1":[
+["be動詞","主語 ＋ am / is / are ＋ ～","I am a student.","私は生徒です。"],
+["一般動詞","主語 ＋ 動詞 ＋ ～","I play tennis.","私はテニスをします。"],
+["三単現のs","主語（he / she / it など）＋ 動詞にs・es","She plays the piano.","彼女はピアノをひきます。"],
+["否定文（be動詞）","主語 ＋ be動詞 ＋ not ＋ ～","I am not hungry.","私はおなかがすいていません。"],
+["否定文（一般動詞）","主語 ＋ don't / doesn't ＋ 動詞の原形","He doesn't like cats.","彼はねこが好きではありません。"],
+["疑問文（be動詞）","be動詞 ＋ 主語 ＋ ～ ？","Are you busy?","あなたはいそがしいですか。"],
+["疑問文（一般動詞）","Do / Does ＋ 主語 ＋ 動詞の原形 ～ ？","Do you like music?","あなたは音楽が好きですか。"],
+["疑問詞（what・where など）","疑問詞 ＋ 疑問文の形","Where do you live?","あなたはどこに住んでいますか。"],
+["命令文","動詞の原形 ～ ／ Don't ＋ 動詞の原形","Open the window.","窓を開けなさい。"],
+["can","主語 ＋ can ＋ 動詞の原形","I can swim fast.","私は速く泳げます。"],
+["現在進行形","be動詞 ＋ 動詞のing形","I am reading a book now.","私は今、本を読んでいます。"],
+["過去形（一般動詞）","動詞の過去形（-ed ／ 不規則に変わる）","I visited Kyoto last year.","私は去年、京都を訪れました。"],
+["過去形（be動詞）","主語 ＋ was / were ＋ ～","I was tired yesterday.","私はきのう疲れていました。"]],
+"中2":[
+["過去進行形","was / were ＋ 動詞のing形","I was watching TV then.","私はそのときテレビを見ていました。"],
+["未来（will）","will ＋ 動詞の原形","I will call you tomorrow.","明日あなたに電話します。"],
+["未来（be going to）","be going to ＋ 動詞の原形","I am going to visit my uncle.","私はおじを訪ねる予定です。"],
+["must・have to","must ＋ 動詞の原形 ／ have to ＋ 動詞の原形（～しなければならない）","I have to finish my homework.","私は宿題を終えなければなりません。"],
+["may・should","may ＋ 動詞の原形（～してもよい）／ should ＋ 動詞の原形（～すべき）","You should go to bed early.","あなたは早く寝るべきです。"],
+["不定詞（名詞的用法）","to ＋ 動詞の原形（～すること）","I want to be a teacher.","私は先生になりたいです。"],
+["不定詞（副詞的用法）","to ＋ 動詞の原形（～するために）","I went to the park to play soccer.","私はサッカーをするために公園へ行きました。"],
+["不定詞（形容詞的用法）","名詞 ＋ to ＋ 動詞の原形（～するための・～すべき）","I have a lot of homework to do.","私にはやるべき宿題がたくさんあります。"],
+["動名詞","動詞のing形（～すること）","I like playing baseball.","私は野球をすることが好きです。"],
+["接続詞（when・if・because・that）","文 ＋ 接続詞 ＋ 主語 ＋ 動詞","I think that he is kind.","私は、彼は親切だと思います。"],
+["There is・are","There is / are ＋ 名詞 ＋ 場所","There is a cat under the table.","テーブルの下にねこがいます。"],
+["比較級","形容詞・副詞のer形 ＋ than ／ more ～ than","Tom is taller than Ken.","トムはケンより背が高いです。"],
+["最上級","the ＋ 形容詞・副詞のest形 ＋ in / of ／ the most ～","Mt. Fuji is the highest mountain in Japan.","富士山は日本でいちばん高い山です。"],
+["as ～ as","as ＋ 形容詞・副詞（そのままの形）＋ as","I am as tall as my father.","私は父と同じくらいの背の高さです。"],
+["SVOO（give 人 もの）","動詞（give / show など）＋ 人 ＋ もの","My mother gave me a watch.","母は私に腕時計をくれました。"],
+["SVOC（call・make A B）","動詞（call / make など）＋ A ＋ B（AをBと呼ぶ・AをBにする）","We call him Ken.","私たちは彼をケンと呼びます。"]],
+"中3":[
+["受け身","be動詞 ＋ 過去分詞","This room is cleaned every day.","この部屋は毎日そうじされます。"],
+["現在完了（継続）","have / has ＋ 過去分詞（for / since）","I have lived here for ten years.","私はここに10年間住んでいます。"],
+["現在完了（経験）","have / has ＋ 過去分詞（ever / never / before）","I have been to Okinawa twice.","私は沖縄に2回行ったことがあります。"],
+["現在完了（完了）","have / has ＋ 過去分詞（just / already / yet）","I have just finished lunch.","私はちょうど昼ごはんを食べ終えたところです。"],
+["現在完了進行形","have / has been ＋ 動詞のing形","It has been raining since this morning.","けさからずっと雨が降っています。"],
+["It is ～ for 人 to …","It is ＋ 形容詞 ＋ for 人 ＋ to ＋ 動詞の原形","It is important for us to read books.","本を読むことは私たちにとって大切です。"],
+["疑問詞＋to（how to など）","how / what / where ＋ to ＋ 動詞の原形","I don't know how to use this.","私はこれの使い方がわかりません。"],
+["want 人 to …","want / tell / ask ＋ 人 ＋ to ＋ 動詞の原形","I want you to help me.","私はあなたに手伝ってほしいです。"],
+["let・make・help 人 ＋原形","let / make / help ＋ 人 ＋ 動詞の原形","Let me try.","私にやらせてください。"],
+["間接疑問文","文 ＋ 疑問詞 ＋ 主語 ＋ 動詞","I know where he lives.","私は彼がどこに住んでいるか知っています。"],
+["分詞の後置修飾（現在分詞）","名詞 ＋ 動詞のing形 ＋ ～（～している〇〇）","The boy playing soccer is my brother.","サッカーをしている男の子は私の弟です。"],
+["分詞の後置修飾（過去分詞）","名詞 ＋ 過去分詞 ＋ ～（～された〇〇）","This is a car made in Japan.","これは日本で作られた車です。"],
+["関係代名詞（主格）","名詞 ＋ who / which / that ＋ 動詞","I have a friend who lives in America.","私にはアメリカに住んでいる友だちがいます。"],
+["関係代名詞（目的格）","名詞 ＋ which / that ＋ 主語 ＋ 動詞","This is the book that I bought yesterday.","これは私がきのう買った本です。"],
+["仮定法（If・I wish）","If ＋ 主語 ＋ 過去形, 主語 ＋ would / could ＋ 動詞の原形 ／ I wish ＋ 主語 ＋ 過去形","If I were a bird, I could fly.","もし私が鳥なら、飛べるのに。"]]
+};
+
+const ITEMS = [];
+for (const [cat, list] of Object.entries(RAW)) {
+  list.forEach(([name, form, ex, exja], k) => ITEMS.push({ id: cat + ":" + name, cat, name, form, ex, exja, no: k + 1 }));
+}
+const BY_ID = Object.fromEntries(ITEMS.map(w => [w.id, w]));
+const IDX = Object.fromEntries(ITEMS.map((w, i) => [w.id, i]));
+const CATS = Object.keys(RAW);
+
+function load(key, fallback){ try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; } }
+function save(key, val){ try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
+
+const state = Object.assign(
+  { hide: "form", cats: CATS.slice(), only: "all", view: "list", shuffled: false,
+    pickIds: [], pickWrong: [], pickLabel: "",       // 復習用にしぼり込んだ文法
+    testMode: "seq", testMix: true, testPos: 0 },    // testPos: 「続きから」で次に出す文法の位置
+  load("bunpo-settings", {})
+);
+if (state.hide !== "form" && state.hide !== "name") state.hide = "form";
+let marks = load("bunpo-marks", {});     // id -> "ok" | "ng"
+let records = load("bunpo-records", []); // 確認テストの記録
+let order = ITEMS.map((_, i) => i);
+let revealed = new Set();
+let cardIndex = 0, cardShown = false;
+let test = null;                         // 実施中のテスト
+
+function current(){
+  const pick = new Set(state.pickIds);
+  return order.map(i => ITEMS[i]).filter(w =>
+    state.cats.includes(w.cat) &&
+    (state.only === "all" ||
+     (state.only === "ng" && marks[w.id] === "ng") ||
+     (state.only === "notok" && marks[w.id] !== "ok") ||
+     (state.only === "pick" && pick.has(w.id))));
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+
+// ===== 発音（ブラウザの読み上げ機能で例文を読む） =====
+const CAN_SPEAK = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+function englishVoice(){
+  const vs = speechSynthesis.getVoices();
+  return vs.find(v => v.lang === "en-US") || vs.find(v => /^en/i.test(v.lang)) || null;
+}
+function speak(text){
+  if (!CAN_SPEAK || !text) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US"; u.rate = 0.85;
+  const v = englishVoice(); if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+if (CAN_SPEAK) speechSynthesis.getVoices();
+function sayBtn(w){ return CAN_SPEAK ? `<button class="say" data-say="${esc(w.ex)}" title="例文を聞く">🔊</button>` : ""; }
+// 例文は答えのヒントになるので、答えを見るまで発音ボタンは押せない
+function setSpeakBtn(id, shown){
+  const b = document.getElementById(id);
+  b.hidden = !CAN_SPEAK;
+  b.disabled = !shown;
+}
+function exHtml(w){ return `<span class="exen">${esc(w.ex)}</span><span class="exja">${esc(w.exja)}</span>`; }
+
+function catLabel(cats){ return cats.length === CATS.length ? "すべて" : cats.join("・"); }
+function dirLabel(hide){ return hide === "form" ? "名前→形" : "形→名前"; }
+function fmtDate(iso){
+  const d = new Date(iso), p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function renderControls(){
+  document.querySelectorAll("[data-hide]").forEach(b => b.classList.toggle("on", b.dataset.hide === state.hide));
+  document.querySelectorAll("[data-only]").forEach(b => b.classList.toggle("on", b.dataset.only === state.only));
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === state.view));
+  document.querySelectorAll("[data-cat]").forEach(b => b.classList.toggle("on", state.cats.includes(b.dataset.cat)));
+  const pickBtn = document.getElementById("onlypick");
+  pickBtn.hidden = !state.pickIds.length;
+  pickBtn.textContent = state.pickLabel || "テストの文法";
+  const v = state.view;
+  document.getElementById("listtools").hidden = v !== "list";
+  document.getElementById("ordertools").hidden = !(v === "list" || v === "card");
+  document.getElementById("listview").hidden = v !== "list";
+  document.getElementById("cardview").hidden = v !== "card";
+  document.getElementById("testview").hidden = v !== "test";
+  document.getElementById("recview").hidden = v !== "records";
+  const ws = current();
+  const ok = ws.filter(w => marks[w.id] === "ok").length;
+  document.getElementById("count").textContent = v === "records" ? `記録 ${records.length}回` : `${ws.length}こ（覚えた ${ok}）`;
+  save("bunpo-settings", state);
+}
+
+function renderList(){
+  const box = document.getElementById("listview");
+  const ws = current();
+  if (!ws.length){ box.innerHTML = `<div class="empty">この条件の文法はありません</div>`; return; }
+  box.innerHTML = ws.map(w => {
+    const open = revealed.has(w.id);
+    const fmHidden = state.hide === "form" && !open, nmHidden = state.hide === "name" && !open;
+    const m = marks[w.id];
+    const nmCell = `<div class="cell nm ${nmHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${esc(w.name)}</span></div>`;
+    const fmCell = `<div class="cell fm ${fmHidden ? "hidden" : ""}" data-rev="${esc(w.id)}"><span>${esc(w.form)}</span></div>`;
+    const ex = open
+      ? `<div class="ex"><span>${exHtml(w)}</span>${sayBtn(w)}</div>`
+      : `<div class="ex wait" data-rev="${esc(w.id)}">例文は答えと一緒に出ます</div>`;
+    return `<div class="item ${m === "ok" ? "isok" : m === "ng" ? "isng" : ""}">
+      <div class="no"><small>${esc(w.cat)}</small>${w.no}</div>
+      ${state.hide === "form" ? nmCell + fmCell : fmCell + nmCell}
+      ${ex}
+      <div class="marks">
+        ${isPickWrong(w) ? `<span class="badge">テストで×</span>` : ""}
+        <button class="mk ng ${m === "ng" ? "on" : ""}" data-mark="ng" data-id="${esc(w.id)}">まだ</button>
+        <button class="mk ok ${m === "ok" ? "on" : ""}" data-mark="ok" data-id="${esc(w.id)}">覚えた</button>
+      </div></div>`;
+  }).join("");
+}
+
+// 問題と答え（答えの下に例文を付ける）
+function showQA(w, hide, qEl, aEl){
+  const ex = `<span class="cardex">${exHtml(w)}</span>`;
+  if (hide === "form"){
+    qEl.textContent = w.name; qEl.className = "q";
+    aEl.innerHTML = `<span>${esc(w.form)}</span>${ex}`; aEl.dataset.kind = "fm";
+  } else {
+    qEl.textContent = w.form; qEl.className = "q fmq";
+    aEl.innerHTML = `<span>${esc(w.name)}</span>${ex}`; aEl.dataset.kind = "nm";
+  }
+}
+function aClass(el, shown){ return "a" + (el.dataset.kind === "nm" ? " nmans" : "") + (shown ? "" : " cover"); }
+
+function renderCard(){
+  const ws = current();
+  const q = document.getElementById("q"), a = document.getElementById("a");
+  if (!ws.length){
+    document.getElementById("prog").textContent = "";
+    q.textContent = "この条件の文法はありません"; q.className = "q"; a.innerHTML = ""; a.className = "a"; return;
+  }
+  if (cardIndex >= ws.length) cardIndex = ws.length - 1;
+  if (cardIndex < 0) cardIndex = 0;
+  const w = ws[cardIndex];
+  document.getElementById("prog").innerHTML = `${cardIndex + 1} / ${ws.length}　・　${esc(w.cat)} ${w.no}番` +
+    (isPickWrong(w) ? `　<span class="badge">テストで×</span>` : "");
+  showQA(w, state.hide, q, a);
+  a.className = aClass(a, cardShown);
+  document.getElementById("reveal").textContent = cardShown ? "かくす" : "答えを見る";
+  setSpeakBtn("speak", cardShown);
+  document.getElementById("markng").classList.toggle("on", marks[w.id] === "ng");
+  document.getElementById("markok").classList.toggle("on", marks[w.id] === "ok");
+}
+
+// ===== 確認テスト =====
+function renderTest(){
+  const setup = document.getElementById("testsetup"), run = document.getElementById("testrun"), done = document.getElementById("testdone");
+  setup.hidden = !!test; run.hidden = !test || test.finished; done.hidden = !test || !test.finished;
+  if (!test){
+    const pool = seqPool(), n = pool.length;
+    document.querySelectorAll("[data-tmode]").forEach(b => b.classList.toggle("on", b.dataset.tmode === state.testMode));
+    document.getElementById("seqtools").hidden = state.testMode !== "seq";
+    document.getElementById("testmix").checked = state.testMix;
+    let next = "";
+    if (state.testMode === "seq" && n){
+      const w = pool[seqStart(pool)];
+      next = ` ／ 次は${w.cat}${w.no}番「${w.name}」から`;
+    }
+    document.getElementById("testinfo").textContent =
+      `出し方：${dirLabel(state.hide)} ／ はんい：${catLabel(state.cats)} ／ 出題できる文法：${n}こ${next}`;
+    document.getElementById("teststart").disabled = !n;
+    return;
+  }
+  if (!test.finished){
+    const w = BY_ID[test.items[test.i]];
+    document.getElementById("tprog").textContent = `${test.i + 1} / ${test.items.length}問　・　○ ${test.results.filter(r => r).length}`;
+    const ta = document.getElementById("ta");
+    showQA(w, test.hide, document.getElementById("tq"), ta);
+    ta.className = aClass(ta, test.shown);
+    document.getElementById("treveal").textContent = test.shown ? "かくす" : "答えを見る";
+    setSpeakBtn("tspeak", test.shown);
+    document.getElementById("tback").disabled = test.i === 0;
+    return;
+  }
+  const correct = test.results.filter(r => r).length, total = test.items.length;
+  const wrong = test.items.filter((_, i) => !test.results[i]).map(id => BY_ID[id]);
+  document.getElementById("dmeta").textContent = `${dirLabel(test.hide)} ／ ${catLabel(test.cats)}` + (test.range ? ` ／ ${test.range}` : "");
+  document.getElementById("dscore").textContent = `${correct} / ${total}（${Math.round(correct / total * 100)}%）`;
+  document.getElementById("dwrong").innerHTML = wrong.length
+    ? `<div class="progress">×だった文法</div><ul class="wronglist">${wrong.map(w => `<li><b>${esc(w.name)}</b>　${esc(w.form)}</li>`).join("")}</ul>`
+    : `<div>全問正解！</div>`;
+  document.getElementById("tsave").disabled = test.saved;
+  document.getElementById("tsave").textContent = test.saved ? "記録しました" : "記録する";
+  document.getElementById("treview").textContent = test.saved ? "この回の文法を復習" : "記録して復習する";
+  document.getElementById("tdiscard").textContent = test.saved ? "終わる" : "記録しないで終わる";
+}
+
+function shuffled(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+// 「続きから」用：選んでいる文法を一覧の順番に並べたもの
+function seqPool(){ return current().sort((a, b) => IDX[a.id] - IDX[b.id]); }
+function seqStart(pool){ const k = pool.findIndex(w => IDX[w.id] >= state.testPos); return k < 0 ? 0 : k; }
+
+function startTest(){
+  const v = document.getElementById("testnum").value;
+  let items, nextPos = null, range = "";
+  if (state.testMode === "seq"){
+    const pool = seqPool();
+    const n = v === "all" ? pool.length : Math.min(Number(v), pool.length);
+    const s = seqStart(pool);
+    // 最後まで行ったら最初に戻って続ける
+    const picked = Array.from({ length: n }, (_, k) => pool[(s + k) % pool.length]);
+    if (!picked.length) return;
+    const last = picked[picked.length - 1];
+    nextPos = IDX[last.id] + 1;
+    range = `${picked[0].cat}${picked[0].no}番 ${picked[0].name} ～ ${last.cat}${last.no}番 ${last.name}`;
+    items = (state.testMix ? shuffled(picked) : picked).map(w => w.id);
+  } else {
+    const pool = shuffled(current());
+    items = (v === "all" ? pool : pool.slice(0, Number(v))).map(w => w.id);
+    if (!items.length) return;
+  }
+  test = { items, i: 0, shown: false, results: [], hide: state.hide, cats: state.cats.slice(),
+           mode: state.testMode, nextPos, range, finished: false, saved: false };
+}
+function judge(ok){
+  if (!test || test.finished) return;
+  test.results[test.i] = ok;
+  test.shown = false;
+  if (test.i + 1 >= test.items.length) test.finished = true; else test.i++;
+}
+function saveTest(){
+  const correct = test.results.filter(r => r).length;
+  records.unshift({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: new Date().toISOString(), hide: test.hide, cats: test.cats,
+    total: test.items.length, correct, mode: test.mode, range: test.range, items: test.items,
+    wrong: test.items.filter((_, i) => !test.results[i])
+  });
+  save("bunpo-records", records);
+  // 記録したときだけ「続きから」の位置を進める
+  if (test.mode === "seq") state.testPos = test.nextPos >= ITEMS.length ? 0 : test.nextPos;
+  test.saved = true;
+}
+
+// ===== テスト記録 =====
+function renderRecords(){
+  const box = document.getElementById("reclist");
+  const n = records.length;
+  const avg = n ? Math.round(records.reduce((s, r) => s + r.correct / r.total, 0) / n * 100) : 0;
+  const last = n ? Math.round(records[0].correct / records[0].total * 100) : 0;
+  const allWrong = new Set(records.flatMap(r => r.wrong));
+  document.getElementById("stats").innerHTML = `
+    <div><b>${n}回</b>テストした回数</div>
+    <div><b>${n ? avg + "%" : "-"}</b>平均の正答率</div>
+    <div><b>${n ? last + "%" : "-"}</b>前回の正答率</div>
+    <div><b>${allWrong.size}こ</b>これまでに×だった文法</div>`;
+  document.getElementById("practiceallwrong").disabled = !allWrong.size;
+  if (!n){ box.innerHTML = `<div class="empty">まだ記録がありません。「確認テスト」から始めましょう。</div>`; return; }
+  box.innerHTML = records.map(r => {
+    const pct = Math.round(r.correct / r.total * 100);
+    const wrong = r.wrong.map(id => BY_ID[id]).filter(Boolean);
+    return `<div class="rec">
+      <div class="rechead">
+        <span class="recdate">${esc(fmtDate(r.date))}</span>
+        <span class="recmeta">${esc(dirLabel(r.hide))} ／ ${esc(catLabel(r.cats))}${r.range ? " ／ " + esc(r.range) : ""}</span>
+        <span class="recscore">${r.correct} / ${r.total}（${pct}%）</span>
+      </div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+      <div class="recwrong">${wrong.length
+        ? "×：" + wrong.map(w => `<span title="${esc(w.form)}"><b>${esc(w.name)}</b></span>`).join("　")
+        : "全問正解"}</div>
+      <div class="recbtns">
+        ${r.items ? `<button data-recreview="${esc(r.id)}">この回の文法を復習</button>` : ""}
+        ${wrong.length ? `<button data-recpractice="${esc(r.id)}">この回の×を練習</button>` : ""}
+        <button class="del" data-recdel="${esc(r.id)}">この記録を消す</button>
+      </div></div>`;
+  }).join("");
+}
+
+// 指定した文法だけにしぼって練習する（wrong には「テストで×」の印が付く）
+function review(ids, wrong, label){
+  state.pickIds = [...new Set(ids)];
+  state.pickWrong = [...new Set(wrong)];
+  state.pickLabel = label;
+  state.only = "pick"; state.cats = CATS.slice(); state.view = "list";
+  revealed.clear(); resetCard();
+}
+function isPickWrong(w){ return state.only === "pick" && state.pickWrong.includes(w.id); }
+
+function exportRecords(){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  const blob = new Blob([JSON.stringify({ app: "bunpo", version: 1, records, marks }, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `bunpo-kiroku-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  document.getElementById("recmsg").textContent = "書き出しました（ダウンロードフォルダを見てください）";
+}
+function importRecords(file){
+  const msg = document.getElementById("recmsg");
+  file.text().then(txt => {
+    const data = JSON.parse(txt);
+    if (data.app !== "bunpo" || !Array.isArray(data.records)) throw new Error();
+    const have = new Set(records.map(r => r.id));
+    const add = data.records.filter(r => r && r.id && !have.has(r.id) && r.total);
+    records = records.concat(add).sort((x, y) => y.date.localeCompare(x.date));
+    save("bunpo-records", records);
+    if (data.marks && !Object.keys(marks).length){ marks = data.marks; save("bunpo-marks", marks); }
+    msg.textContent = `${add.length}件の記録を読み込みました`;
+    render();
+  }).catch(() => { msg.textContent = "読み込めませんでした。文法ページで書き出したファイルを選んでください"; });
+}
+
+function render(){
+  renderControls();
+  ({ list: renderList, card: renderCard, test: renderTest, records: renderRecords })[state.view]();
+}
+
+function setMark(id, val){
+  if (marks[id] === val) delete marks[id]; else marks[id] = val;
+  save("bunpo-marks", marks);
+}
+function shuffle(){
+  order = ITEMS.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+}
+function resetCard(){ cardIndex = 0; cardShown = false; }
+
+// はんいボタン
+document.getElementById("cats").innerHTML =
+  `<button class="chip" data-allcats>すべて</button>` +
+  CATS.map(c => `<button class="chip" data-cat="${c}">${c}（${RAW[c].length}）</button>`).join("");
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button,[data-rev],.a");
+  if (!t) return;
+  // 発音ボタンは画面を描き直さずに読み上げるだけ
+  if (t.dataset.say){ speak(t.dataset.say); return; }
+  if (t.id === "speak"){ const w = current()[cardIndex]; if (w) speak(w.ex); return; }
+  if (t.id === "tspeak"){ if (test && !test.finished) speak(BY_ID[test.items[test.i]].ex); return; }
+  if (test && !test.finished && t.closest("main > .panel")){
+    // テスト中に上の設定を変えると出題が崩れるので、先にやめるか確認する
+    if (!confirm("テストの途中です。やめて設定を変えますか？")) return;
+    test = null;
+  }
+  if (t.dataset.hide){ state.hide = t.dataset.hide; revealed.clear(); cardShown = false; }
+  else if (t.dataset.only){ state.only = t.dataset.only; resetCard(); }
+  else if (t.dataset.view){ state.view = t.dataset.view; cardShown = false; if (test && test.finished) test = null; }
+  else if (t.hasAttribute("data-allcats")){ state.cats = state.cats.length === CATS.length ? [] : CATS.slice(); resetCard(); }
+  else if (t.dataset.cat){
+    const c = t.dataset.cat;
+    // 1つだけ選びたいことが多いので、全部選択中に押したらその1つだけにする
+    if (state.cats.length === CATS.length) state.cats = [c];
+    else state.cats = state.cats.includes(c) ? state.cats.filter(x => x !== c) : [...state.cats, c];
+    resetCard();
+  }
+  else if (t.dataset.rev){ const id = t.dataset.rev; revealed.has(id) ? revealed.delete(id) : revealed.add(id); }
+  else if (t.dataset.mark){ setMark(t.dataset.id, t.dataset.mark); }
+  else if (t.id === "shuffle"){ shuffle(); state.shuffled = true; resetCard(); }
+  else if (t.id === "order"){ order = ITEMS.map((_, i) => i); state.shuffled = false; resetCard(); }
+  else if (t.id === "showall"){ current().forEach(w => revealed.add(w.id)); }
+  else if (t.id === "hideall"){ revealed.clear(); }
+  else if (t.id === "resetmarks"){ if (confirm("「覚えた／まだ」の印をすべて消しますか？")){ marks = {}; save("bunpo-marks", marks); } }
+  else if (t.id === "reveal" || t.id === "a"){ cardShown = !cardShown; }
+  else if (t.id === "next"){ cardIndex++; cardShown = false; if (cardIndex >= current().length) cardIndex = 0; }
+  else if (t.id === "prev"){ cardIndex--; cardShown = false; if (cardIndex < 0) cardIndex = Math.max(current().length - 1, 0); }
+  else if (t.id === "markng" || t.id === "markok"){
+    const w = current()[cardIndex];
+    if (w){
+      const before = current().length;
+      setMark(w.id, t.id === "markok" ? "ok" : "ng");
+      if (current().length < before) cardShown = false;
+    }
+  }
+  else if (t.id === "teststart"){ startTest(); }
+  else if (t.id === "treveal" || t.id === "ta"){ if (test) test.shown = !test.shown; }
+  else if (t.id === "tok" || t.id === "tng"){ judge(t.id === "tok"); }
+  else if (t.id === "tback"){ if (test.i > 0){ test.i--; test.shown = false; } }
+  else if (t.id === "tquit"){ if (!confirm("テストをやめますか？（記録されません）")) return; test = null; }
+  else if (t.id === "tsave"){ saveTest(); }
+  else if (t.id === "treview"){
+    if (!test.saved) saveTest();
+    review(test.items, test.items.filter((_, i) => !test.results[i]), "この回の文法");
+    test = null;
+  }
+  else if (t.dataset.tmode){ state.testMode = t.dataset.tmode; }
+  else if (t.id === "seqreset"){ state.testPos = 0; }
+  else if (t.id === "tdiscard"){ test = null; }
+  else if (t.dataset.recdel){
+    if (!confirm("この記録を消しますか？元に戻せません。")) return;
+    records = records.filter(r => r.id !== t.dataset.recdel); save("bunpo-records", records);
+  }
+  else if (t.dataset.recreview){
+    const r = records.find(x => x.id === t.dataset.recreview);
+    if (r) review(r.items, r.wrong, `${fmtDate(r.date).split(" ")[0]}の文法`);
+  }
+  else if (t.dataset.recpractice){
+    const r = records.find(x => x.id === t.dataset.recpractice);
+    if (r) review(r.wrong, r.wrong, `${fmtDate(r.date).split(" ")[0]}の×`);
+  }
+  else if (t.id === "practiceallwrong"){ const all = records.flatMap(r => r.wrong); review(all, all, "これまでの×"); }
+  else if (t.id === "exportrec"){ exportRecords(); return; }
+  else if (t.id === "importrec"){ document.getElementById("importfile").click(); return; }
+  else return;
+  render();
+});
+
+document.getElementById("testmix").addEventListener("change", e => { state.testMix = e.target.checked; save("bunpo-settings", state); });
+
+document.getElementById("importfile").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (f) importRecords(f);
+  e.target.value = "";
+});
+
+document.addEventListener("keydown", e => {
+  if (e.target instanceof Element && e.target.matches("input,select,textarea")) return;
+  let map = null;
+  if (state.view === "card") map = { " ":"reveal", ArrowRight:"next", ArrowLeft:"prev", "1":"markng", "2":"markok", s:"speak", S:"speak" };
+  if (state.view === "test" && test && !test.finished)
+    map = { " ":"treveal", "1":"tng", x:"tng", X:"tng", "2":"tok", o:"tok", O:"tok", Backspace:"tback", s:"tspeak", S:"tspeak" };
+  if (map && map[e.key]){
+    e.preventDefault();
+    const b = document.getElementById(map[e.key]);
+    if (!b.disabled && !b.hidden) b.click();
+  }
+});
+
+if (state.shuffled) shuffle();
+render();
+</script>
+</body>
+</html>

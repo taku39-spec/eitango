@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>中学英単語れんしゅう</title>
+<title>中学英語れんしゅう｜英単語</title>
 <style>
 :root{
   --bg:#f6f4ef; --card:#ffffff; --ink:#1f2328; --sub:#6b6f76; --line:#e3dfd6;
@@ -27,6 +27,15 @@ body{margin:0;background:var(--bg);color:var(--ink);
 header{padding:16px;max-width:960px;margin:0 auto}
 h1{font-size:1.4rem;margin:0 0 4px}
 .lead{color:var(--sub);font-size:.9rem;margin:0}
+/* 英単語・文法の切り替えタブ（grammar.html と同じ） */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 8px;border:2px solid var(--line);
+  border-radius:14px;background:var(--card);color:var(--ink);text-decoration:none;text-align:center}
+.tab b{font-size:1.25rem}
+.tab span{font-size:.8rem;color:var(--sub)}
+.tab:hover{border-color:var(--accent)}
+.tab.on{background:var(--accent);border-color:var(--accent);color:var(--on-ink);cursor:default}
+.tab.on span{color:inherit;opacity:.85}
 main{max-width:960px;margin:0 auto;padding:0 16px 48px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
@@ -124,7 +133,11 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 </head>
 <body>
 <header>
-  <h1>中学英単語れんしゅう</h1>
+  <h1>中学英語れんしゅう</h1>
+  <nav class="tabs">
+    <a class="tab on" href="index.html" aria-current="page"><b>英単語</b><span>単語の意味を覚える</span></a>
+    <a class="tab" href="grammar.html"><b>文法</b><span>文法の形と例文を覚える</span></a>
+  </nav>
   <p class="lead">英語か日本語を隠して、思い出す練習をしよう。隠れたところをタップすると答えが出ます。</p>
 </header>
 <main>
