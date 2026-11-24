@@ -59,6 +59,9 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 #testsetup .chip:hover,#testsetup button:hover{border-color:var(--g-view)}
 #testsetup .chip.on,#testsetup .primary{background:var(--g-view);border-color:var(--g-view);color:var(--on-ink)}
 #testsetup input[type=checkbox]{accent-color:var(--g-view)}
+#seqno{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 12px}
+#seqno:focus{outline:2px solid var(--g-view);border-color:var(--g-view)}
+.ngmsg{color:var(--ng)}
 .badge{display:inline-block;font-size:.75rem;font-weight:700;color:#fff;background:var(--ng);
   border-radius:6px;padding:2px 7px;white-space:nowrap}
 
@@ -200,6 +203,11 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
       <div class="row" id="seqtools"><span class="label"></span>
         <label><input type="checkbox" id="testmix"> この回の中では順番をまぜる</label>
         <button id="seqreset">最初からにする</button>
+      </div>
+      <div class="row" id="seqjumptools"><span class="label">番号から</span>
+        <input type="number" id="seqno" min="1" inputmode="numeric" placeholder="番号" style="width:6em">
+        <button id="seqjump">この番号から</button>
+        <span class="hint" id="seqnohint"></span>
       </div>
       <div class="row"><span class="label">問題数</span>
         <select id="testnum">
@@ -456,6 +464,12 @@ function renderTest(){
     const pool = seqPool(), n = pool.length;
     document.querySelectorAll("[data-tmode]").forEach(b => b.classList.toggle("on", b.dataset.tmode === state.testMode));
     document.getElementById("seqtools").hidden = state.testMode !== "seq";
+    document.getElementById("seqjumptools").hidden = state.testMode !== "seq";
+    const noInput = document.getElementById("seqno");
+    noInput.max = seqNoMax(pool);
+    document.getElementById("seqnohint").innerHTML = jumpMsg
+      ? `<span class="ngmsg">${esc(jumpMsg)}</span>`
+      : (state.cats.length === 1 ? `${esc(state.cats[0])}の番号（1〜${seqNoMax(pool)}）` : `選んだ単語の通し番号（1〜${n}）`);
     document.getElementById("testmix").checked = state.testMix;
     let next = "";
     if (state.testMode === "seq" && n){
@@ -499,10 +513,27 @@ function shuffled(arr){
 // 「続きから」用：選んでいる単語を一覧の順番に並べたもの
 function seqPool(){ return current().sort((a, b) => IDX[a.id] - IDX[b.id]); }
 function seqStart(pool){ const k = pool.findIndex(w => IDX[w.id] >= state.testPos); return k < 0 ? 0 : k; }
+// 番号の入力欄：はんいが1つなら一覧と同じ番号、2つ以上なら選んだ単語の通し番号
+let jumpMsg = "";
+function seqNoMax(pool){ return state.cats.length === 1 ? RAW[state.cats[0]].length : pool.length; }
+function jumpTo(num){
+  const pool = seqPool();
+  let w = null;
+  if (Number.isInteger(num) && num >= 1){
+    if (state.cats.length === 1){
+      // しぼり込みで外れている番号のときは、その次にある単語から
+      w = pool.find(x => x.no >= num) || null;
+    } else w = pool[num - 1] || null;
+  }
+  if (!w){ jumpMsg = `その番号はありません（1〜${seqNoMax(pool)}）`; return; }
+  jumpMsg = "";
+  state.testPos = IDX[w.id];
+}
 
 function startTest(){
   const v = document.getElementById("testnum").value;
   let items, nextPos = null, range = "";
+  jumpMsg = "";
   if (state.testMode === "seq"){
     const pool = seqPool();
     const n = v === "all" ? pool.length : Math.min(Number(v), pool.length);
@@ -644,6 +675,7 @@ document.addEventListener("click", e => {
     if (!confirm("テストの途中です。やめて設定を変えますか？")) return;
     test = null;
   }
+  if (t.id !== "seqjump") jumpMsg = "";   // 「その番号はありません」は次の操作で消す
   if (t.dataset.hide){ state.hide = t.dataset.hide; revealed.clear(); cardShown = false; }
   else if (t.dataset.only){ state.only = t.dataset.only; resetCard(); }
   else if (t.dataset.view){ state.view = t.dataset.view; cardShown = false; if (test && test.finished) test = null; }
@@ -686,7 +718,8 @@ document.addEventListener("click", e => {
     test = null;
   }
   else if (t.dataset.tmode){ state.testMode = t.dataset.tmode; }
-  else if (t.id === "seqreset"){ state.testPos = 0; }
+  else if (t.id === "seqreset"){ state.testPos = 0; jumpMsg = ""; }
+  else if (t.id === "seqjump"){ jumpTo(Number(document.getElementById("seqno").value)); }
   else if (t.id === "tdiscard"){ test = null; }
   else if (t.dataset.recdel){
     if (!confirm("この記録を消しますか？元に戻せません。")) return;
@@ -708,6 +741,10 @@ document.addEventListener("click", e => {
 });
 
 document.getElementById("testmix").addEventListener("change", e => { state.testMix = e.target.checked; save("eitango-settings", state); });
+// 番号を入れて Enter でも「この番号から」と同じにする
+document.getElementById("seqno").addEventListener("keydown", e => {
+  if (e.key === "Enter"){ e.preventDefault(); document.getElementById("seqjump").click(); }
+});
 
 document.getElementById("importfile").addEventListener("change", e => {
   const f = e.target.files[0];
